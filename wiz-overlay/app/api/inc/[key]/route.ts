@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
+import { Redis } from '@upstash/redis';
 
-// In-memory store for stats
-let store: Record<string, number> = {
-  gpu: 0,
-  tetriz: 0,
-  bitcoin: 0,
+const redis = Redis.fromEnv();
+
+const defaultStats: Record<string, number> = {
   ledx: 0,
+  gpu: 0,
+  bitcoin: 0,
   redKeycard: 0,
   blueKeycard: 0,
   labsKeycard: 0,
@@ -14,19 +15,13 @@ let store: Record<string, number> = {
 };
 
 async function incStat(key: string) {
-  try {
-    const { kv } = await import('@vercel/kv');
-    const newValue = await kv.incr(key);
-    return newValue;
-  } catch (e) {
-    store[key] = (store[key] ?? 0) + 1;
-    return store[key];
-  }
+  const newValue = await redis.incr(key);
+  return newValue;
 }
 
 export async function POST(request: Request, { params }: { params: { key: string } }) {
   const key = params.key;
-  if (key in store) {
+  if (key in defaultStats) {
     const value = await incStat(key);
     return NextResponse.json({ success: true, value });
   }
