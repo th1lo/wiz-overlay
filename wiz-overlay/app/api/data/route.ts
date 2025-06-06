@@ -1,7 +1,16 @@
 import { NextResponse } from 'next/server';
 import { Redis } from '@upstash/redis';
 
-const redis = Redis.fromEnv();
+if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
+  console.error('KV_REST_API_URL:', process.env.KV_REST_API_URL);
+  console.error('KV_REST_API_TOKEN:', process.env.KV_REST_API_TOKEN);
+  throw new Error('KV_REST_API_URL or KV_REST_API_TOKEN is not set!');
+}
+
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL!,
+  token: process.env.KV_REST_API_TOKEN!,
+});
 
 const defaultStats: Record<string, number> = {
   ledx: 0,
@@ -14,6 +23,9 @@ const defaultStats: Record<string, number> = {
   totalDeaths: 0,
 };
 
+// New Redis key for player stats
+const PLAYER_STATS_KEY = 'player_stats';
+
 async function getStats() {
   const keys = Object.keys(defaultStats);
   const values = await redis.mget<number[]>(...keys);
@@ -21,12 +33,25 @@ async function getStats() {
   keys.forEach((key, i) => {
     stats[key] = values[i] ?? 0;
   });
+
+  // Fetch player stats from Redis
+  const playerStats: any = await redis.get(PLAYER_STATS_KEY);
+  if (playerStats) {
+    stats.playerStats = playerStats;
+  }
+
   return stats;
 }
 
 async function setStat(key: string, value: number) {
   await redis.set(key, value);
   return value;
+}
+
+// New function to update player stats
+async function updatePlayerStats(stats: any) {
+  await redis.set(PLAYER_STATS_KEY, stats);
+  return stats;
 }
 
 export async function GET() {
@@ -42,4 +67,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, value: newValue });
   }
   return NextResponse.json({ success: false, error: 'Invalid key or value' }, { status: 400 });
+}
+
+// New endpoint to update player stats
+export async function PUT(request: Request) {
+  const body = await request.json();
+  const { stats } = body;
+  if (stats) {
+    const updatedStats = await updatePlayerStats(stats);
+    return NextResponse.json({ success: true, stats: updatedStats });
+  }
+  return NextResponse.json({ success: false, error: 'Invalid stats' }, { status: 400 });
 } 

@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { Redis } from '@upstash/redis';
 
-const redis = Redis.fromEnv();
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL!,
+  token: process.env.KV_REST_API_TOKEN!,
+});
 
 const defaultStats: Record<string, number> = {
   ledx: 0,
@@ -19,11 +22,19 @@ async function incStat(key: string) {
   return newValue;
 }
 
-export async function POST(request: Request, { params }: { params: { key: string } }) {
-  const key = params.key;
-  if (key in defaultStats) {
-    const value = await incStat(key);
-    return NextResponse.json({ success: true, value });
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ key: string }> }
+) {
+  try {
+    const { key } = await params;
+    if (key in defaultStats) {
+      const value = await incStat(key);
+      return NextResponse.json({ success: true, value });
+    }
+    return NextResponse.json({ success: false, error: 'Invalid key' }, { status: 400 });
+  } catch (error) {
+    console.error('Error in POST /api/inc/[key]:', error);
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
-  return NextResponse.json({ success: false, error: 'Invalid key' }, { status: 400 });
 } 

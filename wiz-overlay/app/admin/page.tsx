@@ -1,38 +1,51 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Minus } from 'lucide-react';
+import { Eye, EyeOff, Plus, Minus, Crosshair, Skull, ChartNoAxesColumn, Sword, DoorOpen, InfoIcon } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
+import Overlay from '../overlay/page';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-interface Stats {
-  ledx: number;
-  gpu: number;
-  bitcoin: number;
-  redKeycard: number;
-  blueKeycard: number;
-  labsKeycard: number;
-  pmcKills: number;
-  totalDeaths: number;
+interface OverlayConfig {
+  stats: {
+    pmcKills: boolean;
+    totalDeaths: boolean;
+    totalRaids: boolean;
+    survivedRaids: boolean;
+    kdRatio: boolean;
+  };
+  items: {
+    ledx: boolean;
+    gpu: boolean;
+    bitcoin: boolean;
+    redKeycard: boolean;
+    blueKeycard: boolean;
+    labsKeycard: boolean;
+  };
 }
 
-const lootItems = [
-  { key: 'ledx', label: 'LEDX', icon: '/ledx.png' },
-  { key: 'gpu', label: 'GPU', icon: '/gpu.png' },
-  { key: 'bitcoin', label: 'Bitcoin', icon: '/bitcoin.png' },
-  { key: 'redKeycard', label: 'Red Keycard', icon: '/red_keycard.png' },
-  { key: 'blueKeycard', label: 'Blue Keycard', icon: '/blue_keycard.png' },
-  { key: 'labsKeycard', label: 'Labs Keycard', icon: '/yellow_keycard.png' },
-];
+const statConfig = {
+  pmcKills: { label: 'PMC Kills', icon: <Crosshair className="h-7 w-7 text-yellow-400" /> },
+  totalDeaths: { label: 'Deaths', icon: <Skull className="h-7 w-7 text-yellow-400" /> },
+  totalRaids: { label: 'Raids', icon: <Sword className="h-7 w-7 text-yellow-400" /> },
+  survivedRaids: { label: 'Survived', icon: <DoorOpen className="h-7 w-7 text-yellow-400" /> },
+  kdRatio: { label: 'K/D', icon: <ChartNoAxesColumn className="h-7 w-7 text-yellow-400" /> }
+};
 
-const statItems = [
-  { key: 'pmcKills', label: 'PMC Kills', icon: '/pmc_kills.svg', color: 'text-white' },
-  { key: 'totalDeaths', label: 'Total Deaths', icon: '/deaths.svg', color: 'text-white' },
-];
+const itemConfig = {
+  ledx: { label: 'LEDX', image: '/ledx.png' },
+  gpu: { label: 'GPU', image: '/gpu.png' },
+  bitcoin: { label: 'Bitcoin', image: '/bitcoin.png' },
+  redKeycard: { label: 'Red Keycard', image: '/red_keycard.png' },
+  blueKeycard: { label: 'Blue Keycard', image: '/blue_keycard.png' },
+  labsKeycard: { label: 'Labs Keycard', image: '/yellow_keycard.png' }
+};
 
-export default function Admin() {
-  const [stats, setStats] = useState<Stats>({
+export default function AdminPanel() {
+  const [stats, setStats] = useState<Record<string, number>>({
     ledx: 0,
     gpu: 0,
     bitcoin: 0,
@@ -41,165 +54,347 @@ export default function Admin() {
     labsKeycard: 0,
     pmcKills: 0,
     totalDeaths: 0,
+    totalRaids: 0,
+    survivedRaids: 0,
+    kdRatio: 0
   });
 
-  const [inputValues, setInputValues] = useState(() => ({
-    ...stats
-  }));
+  const [config, setConfig] = useState<OverlayConfig>({
+    stats: {
+      pmcKills: true,
+      totalDeaths: true,
+      totalRaids: true,
+      survivedRaids: true,
+      kdRatio: true
+    },
+    items: {
+      ledx: true,
+      gpu: true,
+      bitcoin: true,
+      redKeycard: true,
+      blueKeycard: true,
+      labsKeycard: true
+    }
+  });
+
+  const [showPreview, setShowPreview] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchStats = async () => {
       try {
         const response = await fetch('/api/data');
         const data = await response.json();
-        setStats(data);
+        const mergedStats = {
+          ...data,
+          ...(data.playerStats || {})
+        };
+        delete mergedStats.playerStats;
+        setStats(mergedStats);
       } catch (error) {
         console.error('Error fetching stats:', error);
       }
     };
 
-    fetchData();
-    const interval = setInterval(fetchData, 5000);
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch('/api/config');
+        const data = await response.json();
+        setConfig(data);
+      } catch (error) {
+        console.error('Error fetching config:', error);
+      }
+    };
+
+    fetchStats();
+    fetchConfig();
+    const interval = setInterval(fetchStats, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    setInputValues(stats);
-  }, [stats]);
-
-  const updateStat = async (key: keyof Stats, action: 'inc' | 'dec') => {
+  const saveConfig = async (newConfig: OverlayConfig) => {
     try {
-      const response = await fetch(`/api/${action}/${key}`, { method: 'POST' });
+      await fetch('/api/config', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newConfig),
+      });
+    } catch (error) {
+      console.error('Error saving config:', error);
+    }
+  };
+
+  const toggleStat = (key: keyof OverlayConfig['stats']) => {
+    const newConfig = {
+      ...config,
+      stats: {
+        ...config.stats,
+        [key]: !config.stats[key]
+      }
+    };
+    setConfig(newConfig);
+    saveConfig(newConfig);
+  };
+
+  const toggleItem = (key: keyof OverlayConfig['items']) => {
+    const newConfig = {
+      ...config,
+      items: {
+        ...config.items,
+        [key]: !config.items[key]
+      }
+    };
+    setConfig(newConfig);
+    saveConfig(newConfig);
+  };
+
+  const handleIncrementItem = async (itemKey: string) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          key: itemKey,
+          value: (stats[itemKey] || 0) + 1
+        }),
+      });
       const data = await response.json();
       if (data.success) {
-        setStats((prev) => ({ ...prev, [key]: data.value }));
+        setStats(prev => ({ ...prev, [itemKey]: data.value }));
       }
     } catch (error) {
-      console.error(`Error updating ${key}:`, error);
+      console.error(`Error incrementing ${itemKey}:`, error);
     }
   };
 
-  const handleInputChange = (key: keyof Stats, value: string) => {
-    if (/^\d*$/.test(value)) {
-      setInputValues((prev) => ({ ...prev, [key]: value }));
-    }
-  };
-
-  const handleInputBlur = (key: keyof Stats) => {
-    const val = parseInt(inputValues[key] as any, 10);
-    if (!isNaN(val) && val !== stats[key]) {
-      // Simulate direct set by incrementing or decrementing until match
-      const diff = val - stats[key];
-      const action = diff > 0 ? 'inc' : 'dec';
-      const times = Math.abs(diff);
-      for (let i = 0; i < times; i++) {
-        updateStat(key, action as 'inc' | 'dec');
+  const handleDecrementItem = async (itemKey: string) => {
+    try {
+      const response = await fetch('/api/data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          key: itemKey,
+          value: Math.max(0, (stats[itemKey] || 0) - 1)
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setStats(prev => ({ ...prev, [itemKey]: data.value }));
       }
+    } catch (error) {
+      console.error(`Error decrementing ${itemKey}:`, error);
     }
   };
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, key: keyof Stats) => {
-    if (e.key === 'Enter') {
-      (e.target as HTMLInputElement).blur();
+  const handleItemCountChange = async (itemKey: string, value: string) => {
+    const numValue = parseInt(value) || 0;
+    try {
+      const response = await fetch('/api/data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          key: itemKey,
+          value: Math.max(0, numValue)
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setStats(prev => ({ ...prev, [itemKey]: data.value }));
+      }
+    } catch (error) {
+      console.error(`Error updating ${itemKey}:`, error);
     }
   };
 
   return (
-    <div className="p-8 min-h-screen bg-zinc-800">
-      <h1 className="text-3xl font-bold mb-6 text-white text-center">Admin Panel</h1>
-      <div className="w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Loot Controls */}
-        <div>
-          <h2 className="text-xl font-semibold mb-2 text-white">Loot Items</h2>
-          <div className="space-y-3">
-            {lootItems.map(item => (
-              <div key={item.key} className="flex items-center justify-between bg-zinc-700 rounded-xl px-8 py-6 shadow-md">
-                <div className="flex items-center gap-4 min-w-0">
-                  <img src={item.icon} alt={item.label} className="h-12 w-12 flex-shrink-0" />
-                  <span className="font-semibold text-xl text-white whitespace-nowrap">{item.label}</span>
-                </div>
-                <div className="flex items-center gap-2 ml-10">
-                  <Button size="icon" variant="outline" aria-label={`Decrement ${item.label}`} onClick={() => updateStat(item.key as keyof Stats, 'dec')}>
-                    <Minus className="w-5 h-5" />
-                  </Button>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    className="w-16 text-center text-2xl text-white font-bold bg-transparent border border-zinc-600 rounded focus:outline-none focus:ring-2 focus:ring-primary"
-                    value={inputValues[item.key as keyof Stats] ?? ''}
-                    onChange={e => handleInputChange(item.key as keyof Stats, e.target.value)}
-                    onBlur={() => handleInputBlur(item.key as keyof Stats)}
-                    onKeyDown={e => handleInputKeyDown(e, item.key as keyof Stats)}
-                  />
-                  <Button size="icon" variant="outline" aria-label={`Increment ${item.label}`} onClick={() => updateStat(item.key as keyof Stats, 'inc')}>
-                    <Plus className="w-5 h-5" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+    <div className="relative min-h-screen bg-zinc-900">
+      <div className="p-8">
+        <div className="max-w-7xl mx-auto flex flex-col min-h-[calc(100vh-4rem)]">
+          {/* Background Video */}
+          <div className="fixed bottom-0 left-0 right-0 h-[calc(100vh-4rem)] pointer-events-none">
+            <div className="absolute inset-0">
+              <video 
+                src="/demo.mp4" 
+                className="w-full h-full object-cover"
+                autoPlay 
+                loop 
+                muted
+              />
+            </div>
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/100 via-zinc-900/90 to-zinc-900/50" />
           </div>
-        </div>
-        {/* Stat Controls */}
-        <div>
-          <h2 className="text-xl font-semibold mb-2 text-white">Stats</h2>
-          <div className="space-y-3">
-            {statItems.map(item => (
-              <div key={item.key} className="flex items-center justify-between bg-zinc-700 rounded-xl px-8 py-6 shadow-md">
-                <div className="flex items-center gap-4 min-w-0">
-                  <img src={item.icon} alt={item.label} className="h-12 w-12 flex-shrink-0" />
-                  <span className="font-semibold text-xl text-white whitespace-nowrap">{item.label}</span>
-                </div>
-                <div className="flex items-center gap-2 ml-10">
-                  <Button size="icon" variant="outline" aria-label={`Decrement ${item.label}`} onClick={() => updateStat(item.key as keyof Stats, 'dec')}>
-                    <Minus className="w-5 h-5" />
-                  </Button>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    className="w-16 text-center text-2xl text-white font-bold bg-transparent border border-zinc-600 rounded focus:outline-none focus:ring-2 focus:ring-primary"
-                    value={inputValues[item.key as keyof Stats] ?? ''}
-                    onChange={e => handleInputChange(item.key as keyof Stats, e.target.value)}
-                    onBlur={() => handleInputBlur(item.key as keyof Stats)}
-                    onKeyDown={e => handleInputKeyDown(e, item.key as keyof Stats)}
+
+          {/* Content */}
+          <div className="relative z-10">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8">
+              <h1 className="text-2xl font-bold text-white">Overlay Configuration</h1>
+              <div className="flex items-center space-x-4">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="bg-zinc-800/50 hover:bg-zinc-700/50 border-zinc-700 hover:border-zinc-600 text-zinc-200 hover:text-white transition-colors"
+                    >
+                      <InfoIcon className="h-4 w-4 mr-2" />
+                      <span>OBS Instructions</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-zinc-900 border-zinc-700 [&>button]:text-zinc-400 [&>button]:hover:text-zinc-200 [&>button]:hover:bg-zinc-800/50">
+                    <DialogHeader>
+                      <DialogTitle className="text-white">OBS Setup Instructions</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 text-white">
+                      <p>Add these URLs as Browser Sources in OBS:</p>
+                      <div className="space-y-2">
+                        <p>Player Stats Overlay:</p>
+                        <code className="block bg-zinc-800 p-2 rounded">http://localhost:3000/overlay/player-stats</code>
+                        <p>FIR Items Overlay:</p>
+                        <code className="block bg-zinc-800 p-2 rounded">http://localhost:3000/overlay/fir-items</code>
+                      </div>
+                      <p className="text-sm text-zinc-400">Note: Make sure to set the width and height in OBS to match the overlay size. You can position each overlay independently in your scene.</p>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                <div className="flex items-center space-x-2 bg-zinc-900/70 backdrop-blur-sm rounded-lg px-4 py-2">
+                  <span className="text-white">Show Preview</span>
+                  <Switch
+                    checked={showPreview}
+                    onCheckedChange={setShowPreview}
                   />
-                  <Button size="icon" variant="outline" aria-label={`Increment ${item.label}`} onClick={() => updateStat(item.key as keyof Stats, 'inc')}>
-                    <Plus className="w-5 h-5" />
-                  </Button>
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Stats Configuration */}
+                <Card className="bg-zinc-800/90 backdrop-blur-sm border-zinc-700">
+                  <CardContent className="p-6">
+                    <h2 className="text-xl font-semibold mb-4 text-white">Player Stats</h2>
+                    <div className="space-y-4">
+                      {Object.entries(statConfig).map(([key, stat]) => (
+                        <div key={key} className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            {stat.icon}
+                            <span className="text-white">{stat.label}</span>
+                          </div>
+                          <Switch
+                            checked={config.stats[key as keyof OverlayConfig['stats']]}
+                            onCheckedChange={(checked) => {
+                              setConfig(prev => ({
+                                ...prev,
+                                stats: {
+                                  ...prev.stats,
+                                  [key]: checked
+                                }
+                              }));
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Items Configuration */}
+                <Card className="bg-zinc-800/90 backdrop-blur-sm border-zinc-700">
+                  <CardContent className="p-6">
+                    <h2 className="text-xl font-semibold mb-4 text-white">FIR Items</h2>
+                    <div className="space-y-4">
+                      {Object.entries(itemConfig).map(([key, item]) => (
+                        <div key={key} className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <img src={item.image} alt={item.label} className="h-6 w-6" />
+                            <span className="text-white">{item.label}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleDecrementItem(key)}
+                              className="h-8 w-8 bg-zinc-700 hover:bg-zinc-600 text-white border-zinc-600"
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                            <Input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              value={stats[key]}
+                              onChange={(e) => handleItemCountChange(key, e.target.value)}
+                              className="w-16 h-8 text-center bg-zinc-700 text-white border-zinc-600 focus:border-zinc-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            />
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleIncrementItem(key)}
+                              className="h-8 w-8 bg-zinc-700 hover:bg-zinc-600 text-white border-zinc-600"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                            <Switch
+                              checked={config.items[key as keyof OverlayConfig['items']]}
+                              onCheckedChange={(checked) => {
+                                setConfig(prev => ({
+                                  ...prev,
+                                  items: {
+                                    ...prev.items,
+                                    [key]: checked
+                                  }
+                                }));
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      {/* Overlay Preview */}
-      <div className="fixed bottom-12 left-0 w-full flex justify-center pointer-events-none select-none">
-        <div className="flex items-end w-full max-w-5xl justify-between">
-          {/* Centered Loot Bar */}
-          <div className="flex-1 flex justify-center">
-            <div className="flex bg-zinc-900/90 rounded-xl px-8 py-6 space-x-8 shadow-lg">
-              {lootItems.map(item => (
-                <div key={item.key} className="flex items-center space-x-2">
-                  <img src={item.icon} alt={item.label} className="h-8 w-8" />
-                  <span className="text-white text-lg font-medium">{stats[item.key as keyof Stats]}</span>
+
+      {/* Preview */}
+      <div className="fixed bottom-0 left-0 right-0 pointer-events-none">
+        <div className="absolute bottom-12 left-12">
+          <div className="flex bg-zinc-900/70 backdrop-blur-sm rounded-xl px-8 py-6 space-x-8 shadow-lg">
+            {Object.entries(itemConfig).map(([key, item]) => (
+              config.items[key as keyof OverlayConfig['items']] && (
+                <div key={key} className="flex items-center space-x-2">
+                  <img src={item.image} alt={item.label} className="h-8 w-8" />
+                  <span className="text-white text-lg font-medium">{stats[key]}</span>
                 </div>
-              ))}
-            </div>
+              )
+            ))}
           </div>
-          {/* Right Stats Box */}
-          <div className="ml-8 flex flex-col items-end">
-            <div className="flex bg-zinc-900/90 rounded-xl px-8 py-6 space-x-8 shadow-lg">
-              {statItems.map(item => (
-                <div key={item.key} className="flex items-center space-x-2">
-                  <img src={item.icon} alt={item.label} className="h-7 w-7" />
-                  <span className={`text-lg font-bold ${item.color}`}>{stats[item.key as keyof Stats]}</span>
+        </div>
+        <div className="absolute bottom-12 right-12">
+          <div className="flex bg-zinc-900/70 backdrop-blur-sm rounded-xl px-8 py-6 space-x-8 shadow-lg">
+            {Object.entries(statConfig).map(([key, stat]) => (
+              config.stats[key as keyof OverlayConfig['stats']] && (
+                <div key={key} className="flex items-center space-x-2">
+                  {stat.icon}
+                  <span className="text-white text-lg font-bold">
+                    {key === 'kdRatio' ? stats[key]?.toFixed(2) : stats[key]}
+                  </span>
                 </div>
-              ))}
-            </div>
+              )
+            ))}
           </div>
         </div>
       </div>
     </div>
   );
-} 
+}

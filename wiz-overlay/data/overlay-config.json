@@ -1,0 +1,17 @@
+{
+  "stats": {
+    "pmcKills": true,
+    "totalDeaths": false,
+    "totalRaids": false,
+    "survivedRaids": false,
+    "kdRatio": true
+  },
+  "items": {
+    "ledx": true,
+    "gpu": true,
+    "bitcoin": true,
+    "redKeycard": true,
+    "blueKeycard": true,
+    "labsKeycard": true
+  }
+}

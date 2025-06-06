@@ -1,108 +1,155 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Crosshair, Skull, ChartNoAxesColumn, Sword, DoorOpen } from 'lucide-react';
 
+interface OverlayConfig {
+  stats: {
+    pmcKills: boolean;
+    totalDeaths: boolean;
+    totalRaids: boolean;
+    survivedRaids: boolean;
+    kdRatio: boolean;
+  };
+  items: {
+    ledx: boolean;
+    gpu: boolean;
+    bitcoin: boolean;
+    redKeycard: boolean;
+    blueKeycard: boolean;
+    labsKeycard: boolean;
+  };
+}
 
-interface Stats {
-  gpu: number;
-  tetriz: number;
-  bitcoin: number;
-  ledx: number;
-  redKeycard: number;
-  blueKeycard: number;
-  labsKeycard: number;
-  pmcKills: number;
-  totalKills: number;
+const statConfig = {
+  pmcKills: { label: 'PMC Kills', icon: <Crosshair className="h-7 w-7 text-yellow-400" /> },
+  totalDeaths: { label: 'Deaths', icon: <Skull className="h-7 w-7 text-yellow-400" /> },
+  totalRaids: { label: 'Raids', icon: <Sword className="h-7 w-7 text-yellow-400" /> },
+  survivedRaids: { label: 'Survived', icon: <DoorOpen className="h-7 w-7 text-yellow-400" /> },
+  kdRatio: { label: 'K/D', icon: <ChartNoAxesColumn className="h-7 w-7 text-yellow-400" /> }
+};
+
+const itemConfig = {
+  ledx: { label: 'LEDX', image: '/ledx.png' },
+  gpu: { label: 'GPU', image: '/gpu.png' },
+  bitcoin: { label: 'Bitcoin', image: '/bitcoin.png' },
+  redKeycard: { label: 'Red Keycard', image: '/red_keycard.png' },
+  blueKeycard: { label: 'Blue Keycard', image: '/blue_keycard.png' },
+  labsKeycard: { label: 'Labs Keycard', image: '/yellow_keycard.png' }
+};
+
+function FIRItemsOverlay({ stats, config }: { stats: Record<string, number>, config: OverlayConfig }) {
+  return (
+    <div className="fixed bottom-12 left-12 pointer-events-none select-none">
+      <div className="flex bg-zinc-900/90 rounded-xl px-8 py-6 space-x-8 shadow-lg">
+        {Object.entries(itemConfig).map(([key, item]) => (
+          config.items[key as keyof OverlayConfig['items']] && (
+            <div key={key} className="flex items-center space-x-2">
+              <img src={item.image} alt={item.label} className="h-8 w-8" />
+              <span className="text-white text-lg font-medium">{stats[key]}</span>
+            </div>
+          )
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PlayerStatsOverlay({ stats, config }: { stats: Record<string, number>, config: OverlayConfig }) {
+  return (
+    <div className="fixed bottom-12 right-12 pointer-events-none select-none">
+      <div className="flex bg-zinc-900/90 rounded-xl px-8 py-6 space-x-8 shadow-lg">
+        {Object.entries(statConfig).map(([key, stat]) => (
+          config.stats[key as keyof OverlayConfig['stats']] && (
+            <div key={key} className="flex items-center space-x-2">
+              {stat.icon}
+              <span className="text-white text-lg font-bold">
+                {key === 'kdRatio' ? stats[key]?.toFixed(2) : stats[key]}
+              </span>
+            </div>
+          )
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function Overlay() {
-  const [stats, setStats] = useState<Stats>({
-    gpu: 0,
-    tetriz: 0,
-    bitcoin: 0,
+  const [stats, setStats] = useState<Record<string, number>>({
     ledx: 0,
+    gpu: 0,
+    bitcoin: 0,
     redKeycard: 0,
     blueKeycard: 0,
     labsKeycard: 0,
     pmcKills: 0,
-    totalKills: 0,
+    totalDeaths: 0,
+    totalRaids: 0,
+    survivedRaids: 0,
+    kdRatio: 0
+  });
+
+  const [config, setConfig] = useState<OverlayConfig>({
+    stats: {
+      pmcKills: true,
+      totalDeaths: true,
+      totalRaids: true,
+      survivedRaids: true,
+      kdRatio: true
+    },
+    items: {
+      ledx: true,
+      gpu: true,
+      bitcoin: true,
+      redKeycard: true,
+      blueKeycard: true,
+      labsKeycard: true
+    }
   });
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchStats = async () => {
       try {
         const response = await fetch('/api/data');
+        if (!response.ok) throw new Error('Failed to fetch stats');
         const data = await response.json();
-        setStats(data);
+        const mergedStats = {
+          ...data,
+          ...(data.playerStats || {})
+        };
+        delete mergedStats.playerStats;
+        setStats(mergedStats);
       } catch (error) {
         console.error('Error fetching stats:', error);
       }
     };
 
-    fetchData();
-    const interval = setInterval(fetchData, 5000);
-    return () => clearInterval(interval);
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch('/api/config');
+        if (!response.ok) throw new Error('Failed to fetch config');
+        const data = await response.json();
+        setConfig(data);
+      } catch (error) {
+        console.error('Error fetching config:', error);
+      }
+    };
+
+    fetchStats();
+    fetchConfig();
+    const statsInterval = setInterval(fetchStats, 5000);
+    const configInterval = setInterval(fetchConfig, 1000);
+
+    return () => {
+      clearInterval(statsInterval);
+      clearInterval(configInterval);
+    };
   }, []);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-black p-4">
-      <div className="flex justify-around">
-        <Card className="bg-gray-800 text-white">
-          <CardContent className="flex items-center space-x-2">
-            <img src="/icons/gpu.svg" alt="GPU" className="h-8 w-8" />
-            <span>{stats.gpu}</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-gray-800 text-white">
-          <CardContent className="flex items-center space-x-2">
-            <img src="/icons/tetriz.svg" alt="Tetriz" className="h-8 w-8" />
-            <span>{stats.tetriz}</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-gray-800 text-white">
-          <CardContent className="flex items-center space-x-2">
-            <img src="/icons/bitcoin.svg" alt="Bitcoin" className="h-8 w-8" />
-            <span>{stats.bitcoin}</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-gray-800 text-white">
-          <CardContent className="flex items-center space-x-2">
-            <img src="/icons/ledx.svg" alt="LEDX" className="h-8 w-8" />
-            <span>{stats.ledx}</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-gray-800 text-white">
-          <CardContent className="flex items-center space-x-2">
-            <img src="/icons/red-keycard.svg" alt="Red Keycard" className="h-8 w-8" />
-            <span>{stats.redKeycard}</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-gray-800 text-white">
-          <CardContent className="flex items-center space-x-2">
-            <img src="/icons/blue-keycard.svg" alt="Blue Keycard" className="h-8 w-8" />
-            <span>{stats.blueKeycard}</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-gray-800 text-white">
-          <CardContent className="flex items-center space-x-2">
-            <img src="/icons/labs-keycard.svg" alt="Labs Keycard" className="h-8 w-8" />
-            <span>{stats.labsKeycard}</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-gray-800 text-white">
-          <CardContent className="flex items-center space-x-2">
-            <img src="/icons/pmc-kills.svg" alt="PMC Kills" className="h-8 w-8" />
-            <span>{stats.pmcKills}</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-gray-800 text-white">
-          <CardContent className="flex items-center space-x-2">
-            <img src="/icons/total-kills.svg" alt="Total Kills" className="h-8 w-8" />
-            <span>{stats.totalKills}</span>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <>
+      <FIRItemsOverlay stats={stats} config={config} />
+      <PlayerStatsOverlay stats={stats} config={config} />
+    </>
   );
 } 
