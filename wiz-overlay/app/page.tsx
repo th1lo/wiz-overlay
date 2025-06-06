@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Eye, EyeOff, Plus, Minus, Crosshair, Skull, ChartNoAxesColumn, Sword, DoorOpen, InfoIcon } from 'lucide-react';
+import { Eye, EyeOff, Plus, Minus, Crosshair, Skull, ChartNoAxesColumn, Sword, DoorOpen, InfoIcon, RefreshCw } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import Overlay from './overlay/page';
@@ -259,19 +259,21 @@ export default function AdminPanel() {
       <div className="p-8">
         <div className="max-w-7xl mx-auto flex flex-col min-h-[calc(100vh-4rem)]">
           {/* Background Video */}
-          <div className="fixed bottom-0 left-0 right-0 h-[calc(100vh-4rem)] pointer-events-none">
-            <div className="absolute inset-0">
-              <video 
-                src="/demo.mp4" 
-                className="w-full h-full object-cover"
-                autoPlay 
-                loop 
-                muted
-              />
+          {showPreview && (
+            <div className="fixed bottom-0 left-0 right-0 h-[calc(100vh-4rem)] pointer-events-none">
+              <div className="absolute inset-0">
+                <video 
+                  src="/demo.mp4" 
+                  className="w-full h-full object-cover"
+                  autoPlay 
+                  loop 
+                  muted
+                />
+              </div>
+              {/* Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/100 via-zinc-900/90 to-zinc-900/50" />
             </div>
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/100 via-zinc-900/90 to-zinc-900/50" />
-          </div>
+          )}
 
           {/* Content */}
           <div className="relative z-10">
@@ -279,13 +281,13 @@ export default function AdminPanel() {
             <div className="flex items-center justify-between mb-8">
               <h1 className="text-2xl font-bold text-white">Overlay Configuration</h1>
               <div className="flex items-center space-x-4">
-                <button
-                  onClick={syncPlayerStats}
-                  disabled={syncing}
-                  className="flex items-center px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold disabled:opacity-50"
-                >
-                  {syncing ? 'Syncing...' : 'Sync Player Stats'}
-                </button>
+                <div className="flex items-center space-x-2 bg-zinc-900/70 backdrop-blur-sm rounded-lg px-4 py-2">
+                  <span className="text-white">Show Preview</span>
+                  <Switch
+                    checked={showPreview}
+                    onCheckedChange={setShowPreview}
+                  />
+                </div>
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button 
@@ -312,13 +314,6 @@ export default function AdminPanel() {
                     </div>
                   </DialogContent>
                 </Dialog>
-                <div className="flex items-center space-x-2 bg-zinc-900/70 backdrop-blur-sm rounded-lg px-4 py-2">
-                  <span className="text-white">Show Preview</span>
-                  <Switch
-                    checked={showPreview}
-                    onCheckedChange={setShowPreview}
-                  />
-                </div>
               </div>
             </div>
 
@@ -328,7 +323,19 @@ export default function AdminPanel() {
                 {/* Stats Configuration */}
                 <Card className="bg-zinc-800/90 backdrop-blur-sm border-zinc-700">
                   <CardContent className="p-6">
-                    <h2 className="text-xl font-semibold mb-4 text-white">Player Stats</h2>
+                    <h2 className="text-xl font-semibold mb-4 text-white flex items-center justify-between">
+                      <span>Player Stats</span>
+                      <Button
+                        onClick={syncPlayerStats}
+                        disabled={syncing}
+                        size="icon"
+                        variant="outline"
+                        className="ml-4 bg-zinc-700 hover:bg-blue-500/30 text-blue-400 hover:text-white border-zinc-600 hover:border-blue-500"
+                        title="Sync Player Stats"
+                      >
+                        <RefreshCw className={syncing ? 'animate-spin' : ''} />
+                      </Button>
+                    </h2>
                     <div className="space-y-4">
                       {Object.entries(statConfig).map(([key, stat]) => (
                         <div key={key} className="flex items-center justify-between">
@@ -342,6 +349,12 @@ export default function AdminPanel() {
                               console.log('Toggling stat:', key);
                               toggleStat(key as keyof OverlayConfig['stats']);
                             }}
+                            className={
+                              (config.stats[key as keyof OverlayConfig['stats']]
+                                ? 'bg-green-500 border-green-600'
+                                : 'bg-red-500 border-red-600') +
+                              ' disabled:bg-zinc-700 disabled:border-zinc-600 disabled:opacity-60 disabled:cursor-not-allowed'
+                            }
                           />
                         </div>
                       ))}
@@ -391,6 +404,12 @@ export default function AdminPanel() {
                                 console.log('Toggling item:', key);
                                 toggleItem(key as keyof OverlayConfig['items']);
                               }}
+                              className={
+                                (config.items[key as keyof OverlayConfig['items']]
+                                  ? 'bg-green-500 border-green-600'
+                                  : 'bg-red-500 border-red-600') +
+                                ' disabled:bg-zinc-700 disabled:border-zinc-600 disabled:opacity-60 disabled:cursor-not-allowed'
+                              }
                             />
                           </div>
                         </div>
@@ -405,34 +424,36 @@ export default function AdminPanel() {
       </div>
 
       {/* Preview */}
-      <div className="fixed bottom-0 left-0 right-0 pointer-events-none">
-        <div className="absolute bottom-12 left-12">
-          <div className="flex bg-zinc-900/70 backdrop-blur-sm rounded-xl px-8 py-6 space-x-8 shadow-lg">
-            {Object.entries(itemConfig).map(([key, item]) => (
-              config.items[key as keyof OverlayConfig['items']] && (
-                <div key={key} className="flex items-center space-x-2">
-                  <img src={item.image} alt={item.label} className="h-8 w-8" />
-                  <span className="text-white text-lg font-medium">{Number(stats[key] ?? 0)}</span>
-                </div>
-              )
-            ))}
+      {showPreview && (
+        <div className="fixed bottom-0 left-0 right-0 pointer-events-none">
+          <div className="absolute bottom-12 left-12">
+            <div className="flex bg-zinc-900/70 backdrop-blur-sm rounded-xl px-8 py-6 space-x-8 shadow-lg">
+              {Object.entries(itemConfig).map(([key, item]) => (
+                config.items[key as keyof OverlayConfig['items']] && (
+                  <div key={key} className="flex items-center space-x-2">
+                    <img src={item.image} alt={item.label} className="h-8 w-8" />
+                    <span className="text-white text-lg font-medium">{Number(stats[key] ?? 0)}</span>
+                  </div>
+                )
+              ))}
+            </div>
+          </div>
+          <div className="absolute bottom-12 right-12">
+            <div className="flex bg-zinc-900/70 backdrop-blur-sm rounded-xl px-8 py-6 space-x-8 shadow-lg">
+              {Object.entries(statConfig).map(([key, stat]) => (
+                config.stats[key as keyof OverlayConfig['stats']] && (
+                  <div key={key} className="flex items-center space-x-2">
+                    {stat.icon}
+                    <span className="text-white text-lg font-bold">
+                      {key === 'kdRatio' ? Number(stats[key] ?? 0).toFixed(2) : stats[key]}
+                    </span>
+                  </div>
+                )
+              ))}
+            </div>
           </div>
         </div>
-        <div className="absolute bottom-12 right-12">
-          <div className="flex bg-zinc-900/70 backdrop-blur-sm rounded-xl px-8 py-6 space-x-8 shadow-lg">
-            {Object.entries(statConfig).map(([key, stat]) => (
-              config.stats[key as keyof OverlayConfig['stats']] && (
-                <div key={key} className="flex items-center space-x-2">
-                  {stat.icon}
-                  <span className="text-white text-lg font-bold">
-                    {key === 'kdRatio' ? Number(stats[key] ?? 0).toFixed(2) : stats[key]}
-                  </span>
-                </div>
-              )
-            ))}
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
