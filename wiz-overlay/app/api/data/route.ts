@@ -12,7 +12,7 @@ const redis = new Redis({
   token: process.env.KV_REST_API_TOKEN!,
 });
 
-const defaultStats: Record<string, number> = {
+const defaultStats = {
   ledx: 0,
   gpu: 0,
   bitcoin: 0,
@@ -21,30 +21,21 @@ const defaultStats: Record<string, number> = {
   labsKeycard: 0,
   pmcKills: 0,
   totalDeaths: 0,
+  totalRaids: 0,
+  survivedRaids: 0,
+  kdRatio: 0
 };
 
 // New Redis key for player stats
 const PLAYER_STATS_KEY = 'player_stats';
 
 async function getStats() {
-  const keys = Object.keys(defaultStats);
-  const values = await redis.mget<number[]>(...keys);
-  const stats: Record<string, number> = {};
-  keys.forEach((key, i) => {
-    stats[key] = values[i] ?? 0;
-  });
-
-  // Fetch player stats from Redis
-  const playerStats: any = await redis.get(PLAYER_STATS_KEY);
-  if (playerStats) {
-    stats.playerStats = playerStats;
-  }
-
+  const stats = await redis.hgetall('overlay-stats') || defaultStats;
   return stats;
 }
 
 async function setStat(key: string, value: number) {
-  await redis.set(key, value);
+  await redis.hset('overlay-stats', { [key]: value });
   return value;
 }
 
