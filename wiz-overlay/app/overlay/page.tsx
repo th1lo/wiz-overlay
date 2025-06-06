@@ -46,7 +46,7 @@ function FIRItemsOverlay({ stats, config }: { stats: Record<string, number>, con
           config.items[key as keyof OverlayConfig['items']] && (
             <div key={key} className="flex items-center space-x-2">
               <img src={item.image} alt={item.label} className="h-8 w-8" />
-              <span className="text-white text-lg font-medium">{stats[key]}</span>
+              <span className="text-white text-lg font-medium">{Number(stats[key] ?? 0)}</span>
             </div>
           )
         ))}
@@ -64,7 +64,7 @@ function PlayerStatsOverlay({ stats, config }: { stats: Record<string, number>, 
             <div key={key} className="flex items-center space-x-2">
               {stat.icon}
               <span className="text-white text-lg font-bold">
-                {key === 'kdRatio' ? stats[key]?.toFixed(2) : stats[key]}
+                {key === 'kdRatio' ? Number(stats[key] ?? 0).toFixed(2) : stats[key]}
               </span>
             </div>
           )
@@ -89,23 +89,7 @@ export default function Overlay() {
     kdRatio: 0
   });
 
-  const [config, setConfig] = useState<OverlayConfig>({
-    stats: {
-      pmcKills: true,
-      totalDeaths: true,
-      totalRaids: true,
-      survivedRaids: true,
-      kdRatio: true
-    },
-    items: {
-      ledx: true,
-      gpu: true,
-      bitcoin: true,
-      redKeycard: true,
-      blueKeycard: true,
-      labsKeycard: true
-    }
-  });
+  const [config, setConfig] = useState<OverlayConfig | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -145,6 +129,8 @@ export default function Overlay() {
       clearInterval(configInterval);
     };
   }, []);
+
+  if (!config) return null;
 
   return (
     <>

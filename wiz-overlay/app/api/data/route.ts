@@ -30,7 +30,8 @@ const defaultStats = {
 const PLAYER_STATS_KEY = 'player_stats';
 
 async function getStats() {
-  const stats = await redis.hgetall('overlay-stats') || defaultStats;
+  const redisStats = await redis.hgetall('overlay-stats') || {};
+  const stats = { ...defaultStats, ...redisStats };
   return stats;
 }
 

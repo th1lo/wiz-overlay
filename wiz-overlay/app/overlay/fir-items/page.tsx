@@ -83,7 +83,7 @@ export default function FIRItemsOverlay() {
         config.items[key as keyof OverlayConfig['items']] && (
           <div key={key} className="flex items-center space-x-2">
             <img src={item.image} alt={item.label} className="h-8 w-8" />
-            <span className="text-white text-lg font-medium">{stats[key]}</span>
+            <span className="text-white text-lg font-medium">{Number(stats[key] ?? 0)}</span>
           </div>
         )
       ))}

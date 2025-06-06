@@ -81,7 +81,7 @@ export default function PlayerStatsOverlay() {
           <div key={key} className="flex items-center space-x-2">
             {stat.icon}
             <span className="text-white text-lg font-bold">
-              {key === 'kdRatio' ? stats[key]?.toFixed(2) : stats[key]}
+              {key === 'kdRatio' ? Number(stats[key] ?? 0).toFixed(2) : stats[key]}
             </span>
           </div>
         )
