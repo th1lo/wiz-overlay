@@ -24,10 +24,10 @@ async function decStat(key: string) {
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ key: string }> }
+  { params }: { params: { key: string } }
 ) {
   try {
-    const { key } = await params;
+    const { key } = params;
     if (key in defaultStats) {
       const value = await decStat(key);
       return NextResponse.json({ success: true, value });
