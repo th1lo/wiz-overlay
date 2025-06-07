@@ -114,7 +114,7 @@ export function PlayerStatsOverlay({ stats: propStats, config: propConfig, card 
   );
 
   return (
-    <div className="fixed bottom-12 right-12 pointer-events-none select-none">
+    <div className="w-full h-full flex items-center justify-center pointer-events-none select-none">
       {showCard ? (
         <div className="bg-zinc-900/90 rounded-xl px-8 py-6 shadow-lg">
           {content}
