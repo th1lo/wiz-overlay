@@ -215,8 +215,15 @@ export default function AdminPanel() {
       const data = await res.json();
       console.log('Tarkov.dev API response:', data);
       const items = data.pmcStats?.eft?.overAllCounters?.Items || [];
-      const getValue = (keyArr: string[]) =>
-        (items.find((i: any) => JSON.stringify(i.Key) === JSON.stringify(keyArr))?.Value) || 0;
+      const getValue = (keyArr: string[]) => {
+        const found = items.find((i: unknown) => {
+          if (typeof i === 'object' && i !== null && 'Key' in i && 'Value' in i) {
+            return JSON.stringify((i as { Key: unknown }).Key) === JSON.stringify(keyArr);
+          }
+          return false;
+        });
+        return found && typeof (found as { Value?: number }).Value === 'number' ? (found as { Value: number }).Value : 0;
+      };
       const pmcKills = getValue(["Kills"]);
       const totalDeaths = getValue(["Deaths"]);
       const totalRaids = getValue(["Sessions", "Pmc"]);
