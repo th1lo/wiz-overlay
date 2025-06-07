@@ -41,7 +41,7 @@ async function setStat(key: string, value: number) {
 }
 
 // New function to update player stats
-async function updatePlayerStats(stats: any) {
+async function updatePlayerStats(stats: unknown) {
   await redis.set(PLAYER_STATS_KEY, stats);
   return stats;
 }

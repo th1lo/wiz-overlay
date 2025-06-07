@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -24,7 +25,6 @@ export default function PlayerStatsOverlay({ stats: propStats, config: propConfi
   const [config, setConfig] = useState<OverlayConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [lastChangedStat, setLastChangedStat] = useState<string | null>(null);
-  const [changeDirection, setChangeDirection] = useState<'up' | 'down' | null>(null);
   const prevStats = useRef<Record<string, number> | null>(null);
 
   useEffect(() => {
@@ -77,10 +77,8 @@ export default function PlayerStatsOverlay({ stats: propStats, config: propConfi
       for (const key of Object.keys(statConfig)) {
         if (displayStats[key] !== prevStats.current[key]) {
           setLastChangedStat(key);
-          setChangeDirection(displayStats[key] > prevStats.current[key] ? 'up' : 'down');
           setTimeout(() => {
             setLastChangedStat(null);
-            setChangeDirection(null);
           }, 500);
           break;
         }
@@ -91,7 +89,7 @@ export default function PlayerStatsOverlay({ stats: propStats, config: propConfi
 
   const displayStats = propStats || stats;
   const displayConfig = propConfig || config;
-  const showCard = card ?? (displayConfig && (displayConfig as any).showCards !== false);
+  const showCard = card ?? (displayConfig && (displayConfig as unknown as { showCards?: boolean }).showCards !== false);
   if (isLoading || !displayStats || !displayConfig) return null;
 
   const content = (

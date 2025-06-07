@@ -20,6 +20,7 @@ interface FIRItemsOverlayProps {
   card?: boolean;
 }
 
+/* eslint-disable @next/next/no-img-element */
 export default function FIRItemsOverlay({ stats: propStats, config: propConfig, card }: FIRItemsOverlayProps = {}) {
   const [stats, setStats] = useState<Record<string, number> | null>(null);
   const [config, setConfig] = useState<OverlayConfig | null>(null);
@@ -89,7 +90,8 @@ export default function FIRItemsOverlay({ stats: propStats, config: propConfig, 
 
   const displayStats = propStats || stats;
   const displayConfig = propConfig || config;
-  const showCard = card ?? (displayConfig && (displayConfig as any).showCards !== false);
+  // eslint-disable-next-line @next/next/no-img-element
+  const showCard = card ?? (displayConfig && (displayConfig as unknown as { showCards?: boolean }).showCards !== false);
 
   if (isLoading || !displayStats || !displayConfig) return null;
 

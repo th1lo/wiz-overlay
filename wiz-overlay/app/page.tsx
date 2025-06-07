@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Eye, EyeOff, Plus, Minus, Crosshair, Skull, ChartNoAxesColumn, Sword, DoorOpen, InfoIcon, RefreshCw } from 'lucide-react';
+import { Plus, Minus, Crosshair, Skull, ChartNoAxesColumn, Sword, DoorOpen, InfoIcon, RefreshCw } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -239,6 +239,8 @@ export default function AdminPanel() {
     }
   };
 
+  const showCard = config.showCards !== false;
+
   return (
     <div className="relative min-h-screen bg-zinc-900">
       <div className="p-8">
@@ -276,7 +278,7 @@ export default function AdminPanel() {
                 <div className="flex items-center space-x-2 bg-zinc-900/70 backdrop-blur-sm rounded-lg px-4 py-2">
                   <span className="text-white">Show Overlay Box</span>
                   <Switch
-                    checked={config.showCards !== false}
+                    checked={showCard}
                     onCheckedChange={(checked) => {
                       const newConfig = { ...config, showCards: checked };
                       setConfig(newConfig);
@@ -422,8 +424,8 @@ export default function AdminPanel() {
       {/* Preview */}
       {showPreview && (
         <>
-          <FIRItemsOverlay stats={stats} config={config} card={config.showCards !== false} />
-          <PlayerStatsOverlay stats={stats} config={config} card={config.showCards !== false} />
+          <FIRItemsOverlay stats={stats} config={config} card={showCard} />
+          <PlayerStatsOverlay stats={stats} config={config} card={showCard} />
         </>
       )}
     </div>
