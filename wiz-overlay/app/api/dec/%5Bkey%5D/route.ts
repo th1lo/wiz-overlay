@@ -1,2 +1,3 @@
--yellowKeycard: 0,
-+yellowKeycard: 0, 
+export default {
+  yellowKeycard: 0,
+}; 
