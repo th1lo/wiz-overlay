@@ -6,7 +6,7 @@ const redis = new Redis({
   token: process.env.KV_REST_API_TOKEN!,
 });
 
-const defaultConfig = {
+const defaultConfig: OverlayConfig = {
   stats: {
     pmcKills: true,
     totalDeaths: true,
@@ -21,12 +21,20 @@ const defaultConfig = {
     redKeycard: true,
     blueKeycard: true,
     yellowKeycard: true
-  }
+  },
+  showCards: true
+};
+
+type OverlayConfig = {
+  stats: Record<string, boolean>;
+  items: Record<string, boolean>;
+  showCards?: boolean;
 };
 
 export async function GET() {
   try {
-    const config = await redis.get('overlay-config') || defaultConfig;
+    let config = (await redis.get('overlay-config')) as OverlayConfig | null;
+    if (!config) config = { ...defaultConfig };
     if (config.showCards === undefined) config.showCards = true;
     return NextResponse.json(config);
   } catch (error) {
