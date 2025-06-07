@@ -309,14 +309,28 @@ export default function AdminPanel() {
                       <DialogTitle className="text-white">OBS Setup Instructions</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 text-white">
-                      <p>Add these URLs as Browser Sources in OBS:</p>
+                      <p>
+                        <strong>To add the overlay to OBS:</strong>
+                        <ol className="list-decimal list-inside mt-2 mb-4 space-y-1">
+                          <li>Open OBS Studio.</li>
+                          <li>In the <b>Sources</b> panel, click the <b>+</b> and select <b>Browser</b>.</li>
+                          <li>Name your source (e.g., <b>Tarkov Overlay</b>) and click <b>OK</b>.</li>
+                          <li>Paste one of the following URLs in the <b>URL</b> field:</li>
+                        </ol>
+                      </p>
                       <div className="space-y-2">
-                        <p>Player Stats Overlay:</p>
+                        <p>Production (recommended):</p>
+                        <code className="block bg-zinc-800 p-2 rounded">https://wiz-overlay.vercel.app/overlay/player-stats</code>
+                        <code className="block bg-zinc-800 p-2 rounded">https://wiz-overlay.vercel.app/overlay/fir-items</code>
+                        <code className="block bg-zinc-800 p-2 rounded">https://wiz-overlay.vercel.app/overlay</code>
+                        <p>Development (local only):</p>
                         <code className="block bg-zinc-800 p-2 rounded">http://localhost:3000/overlay/player-stats</code>
-                        <p>FIR Items Overlay:</p>
                         <code className="block bg-zinc-800 p-2 rounded">http://localhost:3000/overlay/fir-items</code>
+                        <code className="block bg-zinc-800 p-2 rounded">http://localhost:3000/overlay</code>
                       </div>
-                      <p className="text-sm text-zinc-400">Note: Make sure to set the width and height in OBS to match the overlay size. You can position each overlay independently in your scene.</p>
+                      <p className="text-sm text-zinc-400">
+                        Set the width and height in OBS to match your stream layout (e.g., 1920x1080 for full HD). You can position and resize each overlay as needed in your scene.
+                      </p>
                     </div>
                   </DialogContent>
                 </Dialog>
