@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Minus, InfoIcon, RefreshCw } from 'lucide-react';
@@ -14,6 +14,7 @@ import type { OverlayConfig } from '@/components/types';
 import { Label } from '@/components/ui/label';
 import { FIRItemsOverlay } from '@/components/FIRItemsOverlay';
 import { PlayerStatsOverlay } from '@/components/PlayerStatsOverlay';
+import { useSocket } from '@/lib/hooks/useSocket';
 
 export default function AdminPanel() {
   const [stats, setStats] = useState<Record<string, number>>({});
@@ -39,6 +40,9 @@ export default function AdminPanel() {
   const [scale, setScale] = useState(1);
   const [showSettings, setShowSettings] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
+  const { emitUpdate } = useSocket();
+  const emitDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const lastEmittedStatsRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -70,8 +74,6 @@ export default function AdminPanel() {
 
     fetchStats();
     fetchConfig();
-    const interval = setInterval(fetchStats, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   const saveConfig = async (newConfig: OverlayConfig) => {
@@ -133,7 +135,15 @@ export default function AdminPanel() {
       });
       const data = await response.json();
       if (data.success) {
-        setStats(prev => ({ ...prev, [itemKey]: data.value }));
+        const newStats = { ...stats, [itemKey]: data.value };
+        setStats(newStats);
+        if (lastEmittedStatsRef.current[itemKey] !== data.value) {
+          if (emitDebounceRef.current) clearTimeout(emitDebounceRef.current);
+          emitDebounceRef.current = setTimeout(() => {
+            emitUpdate('fir-items', newStats);
+            lastEmittedStatsRef.current = { ...newStats };
+          }, 300);
+        }
       }
     } catch (error) {
       console.error(`Error incrementing ${itemKey}:`, error);
@@ -154,7 +164,15 @@ export default function AdminPanel() {
       });
       const data = await response.json();
       if (data.success) {
-        setStats(prev => ({ ...prev, [itemKey]: data.value }));
+        const newStats = { ...stats, [itemKey]: data.value };
+        setStats(newStats);
+        if (lastEmittedStatsRef.current[itemKey] !== data.value) {
+          if (emitDebounceRef.current) clearTimeout(emitDebounceRef.current);
+          emitDebounceRef.current = setTimeout(() => {
+            emitUpdate('fir-items', newStats);
+            lastEmittedStatsRef.current = { ...newStats };
+          }, 300);
+        }
       }
     } catch (error) {
       console.error(`Error decrementing ${itemKey}:`, error);
@@ -176,7 +194,15 @@ export default function AdminPanel() {
       });
       const data = await response.json();
       if (data.success) {
-        setStats(prev => ({ ...prev, [itemKey]: data.value }));
+        const newStats = { ...stats, [itemKey]: data.value };
+        setStats(newStats);
+        if (lastEmittedStatsRef.current[itemKey] !== data.value) {
+          if (emitDebounceRef.current) clearTimeout(emitDebounceRef.current);
+          emitDebounceRef.current = setTimeout(() => {
+            emitUpdate('fir-items', newStats);
+            lastEmittedStatsRef.current = { ...newStats };
+          }, 300);
+        }
       }
     } catch (error) {
       console.error(`Error updating ${itemKey}:`, error);
@@ -213,7 +239,16 @@ export default function AdminPanel() {
           body: JSON.stringify({ key, value }),
         })
       ));
-      setStats(prev => ({ ...prev, ...updates }));
+      const newStats = { ...stats, ...updates };
+      setStats(newStats);
+      const changed = Object.keys(updates).some(key => lastEmittedStatsRef.current[key] !== (updates as Record<string, number>)[key]);
+      if (changed) {
+        if (emitDebounceRef.current) clearTimeout(emitDebounceRef.current);
+        emitDebounceRef.current = setTimeout(() => {
+          emitUpdate('player-stats', updates);
+          lastEmittedStatsRef.current = { ...newStats };
+        }, 300);
+      }
     } catch (error) {
       console.error('Failed to sync player stats:', error);
     } finally {

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { itemConfig } from '@/components/overlayConfig';
 import Image from 'next/image';
 import type { OverlayConfig } from './types';
+import { useSocket } from '@/lib/hooks/useSocket';
 
 interface FIRItemsOverlayProps {
   stats?: Record<string, number>;
@@ -19,6 +20,7 @@ export function FIRItemsOverlay(props?: FIRItemsOverlayProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [lastChangedItem, setLastChangedItem] = useState<string | null>(null);
   const prevStats = useRef<Record<string, number> | null>(null);
+  const { onUpdate } = useSocket();
 
   useEffect(() => {
     if (propStats && propConfig) {
@@ -28,39 +30,39 @@ export function FIRItemsOverlay(props?: FIRItemsOverlayProps) {
       return;
     }
 
-    const fetchStats = async () => {
+    const fetchInitialData = async () => {
       try {
-        const response = await fetch('/api/data');
-        if (!response.ok) throw new Error('Failed to fetch stats');
-        const data = await response.json();
-        setStats(data);
+        const [statsResponse, configResponse] = await Promise.all([
+          fetch('/api/data'),
+          fetch('/api/config')
+        ]);
+
+        if (!statsResponse.ok || !configResponse.ok) {
+          throw new Error('Failed to fetch initial data');
+        }
+
+        const [statsData, configData] = await Promise.all([
+          statsResponse.json(),
+          configResponse.json()
+        ]);
+
+        setStats(statsData);
+        setConfig(configData);
         setIsLoading(false);
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        console.error('Error fetching initial data:', error);
       }
     };
 
-    const fetchConfig = async () => {
-      try {
-        const response = await fetch('/api/config');
-        if (!response.ok) throw new Error('Failed to fetch config');
-        const data = await response.json();
-        setConfig(data);
-      } catch (error) {
-        console.error('Error fetching config:', error);
+    fetchInitialData();
+
+    // Set up WebSocket listener for real-time updates
+    onUpdate((data) => {
+      if (data.type === 'fir-items') {
+        setStats(data.data);
       }
-    };
-
-    fetchStats();
-    fetchConfig();
-    const statsInterval = setInterval(fetchStats, 5000);
-    const configInterval = setInterval(fetchConfig, 1000);
-
-    return () => {
-      clearInterval(statsInterval);
-      clearInterval(configInterval);
-    };
-  }, [propStats, propConfig]);
+    });
+  }, [propStats, propConfig, onUpdate]);
 
   // Detect stat changes and animate
   useEffect(() => {

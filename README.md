@@ -1,6 +1,12 @@
-# WiZ Overlay
+# OBS Overlays
 
-A modern, customizable overlay system for Escape from Tarkov, built with Next.js, shadcn/ui, and Upstash Redis. Designed for streamers and content creators who want real-time, beautiful overlays in OBS.
+A modern, customizable overlay system for Escape from Tarkov, built with Next.js, shadcn/ui, Upstash Redis, and Pusher. Designed for streamers and content creators who want real-time, beautiful overlays in OBS.
+
+---
+
+## ⚡️ Project Rule #1
+
+> **The assistant will always make all necessary fixes and improvements automatically, without asking the user for implementation details. The assistant will only ask clarifying questions if absolutely necessary.**
 
 ---
 
@@ -15,6 +21,25 @@ A modern, customizable overlay system for Escape from Tarkov, built with Next.js
    npm run dev
    ```
    The app will be available at [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 🔌 Real-Time Updates with Pusher
+
+This project uses [Pusher Channels](https://pusher.com/channels) for real-time overlay updates, which works reliably on Vercel's free tier.
+
+### Setup
+1. Create a free account at [pusher.com](https://pusher.com/).
+2. Create a new Channels app (choose your region/cluster).
+3. Copy your App ID, Key, Secret, and Cluster from the Pusher dashboard.
+4. Add these to your `.env.local` (or `.env`) file:
+   ```env
+   PUSHER_APP_ID=your_app_id
+   PUSHER_SECRET=your_app_secret
+   NEXT_PUBLIC_PUSHER_KEY=your_app_key
+   NEXT_PUBLIC_PUSHER_CLUSTER=your_app_cluster
+   ```
+5. **Important:** Do not use quotes around the values. Restart your dev server after editing the env file.
 
 ---
 
@@ -39,17 +64,36 @@ A modern, customizable overlay system for Escape from Tarkov, built with Next.js
 
 ---
 
+## 🗂️ Codebase Structure
+
+- **/components/**
+  - `FIRItemsOverlay.tsx` — FIR item overlay logic
+  - `PlayerStatsOverlay.tsx` — Player stats overlay logic
+  - `overlayConfig.tsx` — Overlay item/stat config
+  - `types.ts` — Shared types
+- **/app/page.tsx** — Admin panel (overlay management, preview, settings)
+- **/app/overlay/** — Overlay routes for OBS
+- **/app/api/socket/route.ts** — API route for real-time updates (Pusher)
+- **/lib/pusher.ts** — Pusher server config (Node.js only)
+- **/lib/pusherClient.ts** — Pusher client config (browser only)
+- **/lib/hooks/useSocket.ts** — React hook for real-time overlay updates
+- **/data/** — Persistent data (Upstash Redis)
+- **/public/** — Static assets (images, video, etc.)
+
+---
+
 ## 🛠️ Implementation History (Changelog)
 
 - **2024-06-07**: Major UI/UX refactor, shadcn/ui components, dark mode, settings modal, preview improvements, background video restored, overlays positioned in corners.
 - **2024-06-06**: Overlay scaling, dynamic size recommendations, admin panel preview, improved OBS instructions.
 - **2024-06-05**: Initial Next.js app, FIR Items and Player Stats overlays, Upstash Redis integration, basic admin panel.
+- **2024-06-08**: Switched to Pusher for real-time updates, improved codebase structure, added Project Rule #1.
 
 ---
 
 ## 🚀 Roadmap / Planned Features
 
-- [ ] **WebSocket Live Updates:**
+- [x] **WebSocket Live Updates (Pusher):**
       - Push real-time stat/item changes to overlays without polling.
 - [ ] **Twitch Bot Integration:**
       - Allow chat commands to update overlays (e.g., !addkill, !firitem).
@@ -73,7 +117,8 @@ A modern, customizable overlay system for Escape from Tarkov, built with Next.js
 - Overlay routes are in `/app/overlay/`.
 - Uses Upstash Redis for persistent config/stats.
 - Styling: Tailwind CSS + shadcn/ui.
-- For local dev, ensure you have a `.env` with Upstash credentials if needed.
+- Real-time: Pusher Channels (see setup above).
+- For local dev, ensure you have a `.env.local` or `.env` with Upstash and Pusher credentials if needed.
 
 ---
 
