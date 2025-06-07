@@ -239,7 +239,7 @@ export default function AdminPanel() {
     }
   };
 
-  const showCard = (config as unknown as { showCards?: boolean }).showCards !== false;
+  const showCard = typeof config.showCards === 'boolean' ? config.showCards : true;
 
   return (
     <div className="relative min-h-screen bg-zinc-900">
