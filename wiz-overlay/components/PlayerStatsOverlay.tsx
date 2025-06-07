@@ -2,16 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { statConfig } from '@/components/overlayConfig';
-
-interface OverlayConfig {
-  stats: {
-    pmcKills: boolean;
-    totalDeaths: boolean;
-    totalRaids: boolean;
-    survivedRaids: boolean;
-    kdRatio: boolean;
-  };
-}
+import type { OverlayConfig } from './types';
 
 interface PlayerStatsOverlayProps {
   stats?: Record<string, number>;

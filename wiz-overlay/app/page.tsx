@@ -8,29 +8,10 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { statConfig, itemConfig } from '@/components/overlayConfig';
-import { FIRItemsOverlay } from '@/components/FIRItemsOverlay';
-import { PlayerStatsOverlay } from '@/components/PlayerStatsOverlay';
 import Image from 'next/image';
 import { OverlayPreview } from '@/components/OverlayPreview';
 import { Slider } from '@/components/ui/slider';
-
-interface OverlayConfig {
-  stats: {
-    pmcKills: boolean;
-    totalDeaths: boolean;
-    totalRaids: boolean;
-    survivedRaids: boolean;
-    kdRatio: boolean;
-  };
-  items: {
-    ledx: boolean;
-    gpu: boolean;
-    bitcoin: boolean;
-    redKeycard: boolean;
-    blueKeycard: boolean;
-    yellowKeycard: boolean;
-  };
-}
+import type { OverlayConfig } from '@/components/types';
 
 export default function AdminPanel() {
   const [stats, setStats] = useState<Record<string, number>>({
@@ -47,7 +28,7 @@ export default function AdminPanel() {
     kdRatio: 0
   });
 
-  const [config, setConfig] = useState<OverlayConfig & { showCards?: boolean }>({
+  const [config, setConfig] = useState<OverlayConfig>({
     stats: {
       pmcKills: true,
       totalDeaths: true,
@@ -62,10 +43,10 @@ export default function AdminPanel() {
       redKeycard: true,
       blueKeycard: true,
       yellowKeycard: true
-    }
+    },
+    showCards: true
   });
 
-  const [showPreview, setShowPreview] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [scale, setScale] = useState(1);
 
@@ -103,7 +84,7 @@ export default function AdminPanel() {
     return () => clearInterval(interval);
   }, []);
 
-  const saveConfig = async (newConfig: OverlayConfig & { showCards?: boolean }) => {
+  const saveConfig = async (newConfig: OverlayConfig) => {
     try {
       console.log('Saving config:', newConfig);
       await fetch('/api/config', {
@@ -271,21 +252,19 @@ export default function AdminPanel() {
       <div className="p-8">
         <div className="max-w-7xl mx-auto flex flex-col min-h-[calc(100vh-4rem)]">
           {/* Background Video */}
-          {showPreview && (
-            <div className="fixed bottom-0 left-0 right-0 h-[calc(100vh-4rem)] pointer-events-none">
-              <div className="absolute inset-0">
-                <video 
-                  src="/demo.mp4" 
-                  className="w-full h-full object-cover"
-                  autoPlay 
-                  loop 
-                  muted
-                />
-              </div>
-              {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/100 via-zinc-900/90 to-zinc-900/50" />
+          <div className="fixed bottom-0 left-0 right-0 h-[calc(100vh-4rem)] pointer-events-none">
+            <div className="absolute inset-0">
+              <video 
+                src="/demo.mp4" 
+                className="w-full h-full object-cover"
+                autoPlay 
+                loop 
+                muted
+              />
             </div>
-          )}
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/100 via-zinc-900/90 to-zinc-900/50" />
+          </div>
 
           {/* Content */}
           <div className="relative z-10">
@@ -491,9 +470,7 @@ export default function AdminPanel() {
       </div>
 
       {/* Preview */}
-      {showPreview && (
-        <OverlayPreview stats={stats} config={config} scale={scale} showCard={showCard} />
-      )}
+      <OverlayPreview stats={stats} config={config} scale={scale} showCard={showCard} />
     </div>
   );
 }

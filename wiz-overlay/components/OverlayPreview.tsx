@@ -1,9 +1,10 @@
 import { FIRItemsOverlay } from './FIRItemsOverlay';
 import { PlayerStatsOverlay } from './PlayerStatsOverlay';
+import type { OverlayConfig } from './types';
 
 interface OverlayPreviewProps {
   stats: Record<string, number>;
-  config: any;
+  config: OverlayConfig;
   scale: number;
   showCard: boolean;
 }

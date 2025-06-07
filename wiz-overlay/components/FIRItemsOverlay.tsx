@@ -3,17 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { itemConfig } from '@/components/overlayConfig';
 import Image from 'next/image';
-
-interface OverlayConfig {
-  items: {
-    ledx: boolean;
-    gpu: boolean;
-    bitcoin: boolean;
-    redKeycard: boolean;
-    blueKeycard: boolean;
-    yellowKeycard: boolean;
-  };
-}
+import type { OverlayConfig } from './types';
 
 interface FIRItemsOverlayProps {
   stats?: Record<string, number>;
