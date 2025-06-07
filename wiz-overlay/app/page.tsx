@@ -321,15 +321,21 @@ export default function AdminPanel() {
                       <div className="space-y-2">
                         <p>Production (recommended):</p>
                         <code className="block bg-zinc-800 p-2 rounded">https://wiz-overlay.vercel.app/overlay/player-stats</code>
+                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>320x90</b></span>
                         <code className="block bg-zinc-800 p-2 rounded">https://wiz-overlay.vercel.app/overlay/fir-items</code>
+                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>400x90</b></span>
                         <code className="block bg-zinc-800 p-2 rounded">https://wiz-overlay.vercel.app/overlay</code>
+                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>400x200</b></span>
                         <p>Development (local only):</p>
                         <code className="block bg-zinc-800 p-2 rounded">http://localhost:3000/overlay/player-stats</code>
+                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>320x90</b></span>
                         <code className="block bg-zinc-800 p-2 rounded">http://localhost:3000/overlay/fir-items</code>
+                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>400x90</b></span>
                         <code className="block bg-zinc-800 p-2 rounded">http://localhost:3000/overlay</code>
+                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>400x200</b></span>
                       </div>
                       <p className="text-sm text-zinc-400">
-                        Set the width and height in OBS to match your stream layout (e.g., 1920x1080 for full HD). You can position and resize each overlay as needed in your scene.
+                        Set the width and height in OBS to match your stream layout. You can position and resize each overlay as needed in your scene.
                       </p>
                     </div>
                   </DialogContent>
