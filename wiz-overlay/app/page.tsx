@@ -65,6 +65,7 @@ export default function AdminPanel() {
 
   const [showPreview, setShowPreview] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [scale, setScale] = useState(1);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -249,6 +250,20 @@ export default function AdminPanel() {
 
   const showCard = typeof config.showCards === 'boolean' ? config.showCards : true;
 
+  // Calculate recommended sizes
+  const firItemsCount = Object.values(config.items).filter(Boolean).length;
+  const playerStatsCount = Object.values(config.stats).filter(Boolean).length;
+  const firItemsBaseWidth = 80; // px-8 left/right padding
+  const firItemsItemWidth = 48; // icon + label + spacing
+  const firItemsWidth = Math.round((firItemsBaseWidth * 2 + firItemsCount * firItemsItemWidth) * scale);
+  const firItemsHeight = Math.round(90 * scale);
+  const playerStatsBaseWidth = 80;
+  const playerStatsItemWidth = 48;
+  const playerStatsWidth = Math.round((playerStatsBaseWidth * 2 + playerStatsCount * playerStatsItemWidth) * scale);
+  const playerStatsHeight = Math.round(90 * scale);
+  const fullOverlayWidth = Math.max(firItemsWidth, playerStatsWidth);
+  const fullOverlayHeight = firItemsHeight + playerStatsHeight + 24; // 24px gap
+
   return (
     <div className="relative min-h-screen bg-zinc-900">
       <div className="p-8">
@@ -297,6 +312,19 @@ export default function AdminPanel() {
                     }}
                   />
                 </div>
+                <div className="flex items-center space-x-2 bg-zinc-900/70 backdrop-blur-sm rounded-lg px-4 py-2">
+                  <span className="text-white">Scale</span>
+                  <input
+                    type="range"
+                    min={0.5}
+                    max={2}
+                    step={0.01}
+                    value={scale}
+                    onChange={e => setScale(Number(e.target.value))}
+                    className="w-24"
+                  />
+                  <span className="text-zinc-300 text-xs w-10 text-right">{Math.round(scale * 100)}%</span>
+                </div>
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button 
@@ -324,18 +352,18 @@ export default function AdminPanel() {
                       <div className="space-y-2">
                         <p>Production (recommended):</p>
                         <code className="block bg-zinc-800 p-2 rounded">https://wiz-overlay.vercel.app/overlay/player-stats</code>
-                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>320x90</b></span>
+                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>{playerStatsWidth}x{playerStatsHeight}</b></span>
                         <code className="block bg-zinc-800 p-2 rounded">https://wiz-overlay.vercel.app/overlay/fir-items</code>
-                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>400x90</b></span>
+                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>{firItemsWidth}x{firItemsHeight}</b></span>
                         <code className="block bg-zinc-800 p-2 rounded">https://wiz-overlay.vercel.app/overlay</code>
-                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>400x200</b></span>
+                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>{fullOverlayWidth}x{fullOverlayHeight}</b></span>
                         <p>Development (local only):</p>
                         <code className="block bg-zinc-800 p-2 rounded">http://localhost:3000/overlay/player-stats</code>
-                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>320x90</b></span>
+                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>{playerStatsWidth}x{playerStatsHeight}</b></span>
                         <code className="block bg-zinc-800 p-2 rounded">http://localhost:3000/overlay/fir-items</code>
-                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>400x90</b></span>
+                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>{firItemsWidth}x{firItemsHeight}</b></span>
                         <code className="block bg-zinc-800 p-2 rounded">http://localhost:3000/overlay</code>
-                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>400x200</b></span>
+                        <span className="text-xs text-zinc-400 ml-2">Recommended size: <b>{fullOverlayWidth}x{fullOverlayHeight}</b></span>
                       </div>
                       <p className="text-sm text-zinc-400">
                         Set the width and height in OBS to match your stream layout. You can position and resize each overlay as needed in your scene.
@@ -455,8 +483,8 @@ export default function AdminPanel() {
       {/* Preview */}
       {showPreview && (
         <>
-          <FIRItemsOverlay stats={stats} config={config} card={showCard} />
-          <PlayerStatsOverlay stats={stats} config={config} card={showCard} />
+          <FIRItemsOverlay stats={stats} config={config} card={showCard} scale={scale} />
+          <PlayerStatsOverlay stats={stats} config={config} card={showCard} scale={scale} />
         </>
       )}
     </div>

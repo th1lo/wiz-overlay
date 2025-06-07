@@ -17,9 +17,10 @@ interface PlayerStatsOverlayProps {
   stats?: Record<string, number>;
   config?: OverlayConfig;
   card?: boolean;
+  scale?: number;
 }
 
-export function PlayerStatsOverlay({ stats: propStats, config: propConfig, card }: PlayerStatsOverlayProps = {}) {
+export function PlayerStatsOverlay({ stats: propStats, config: propConfig, card, scale = 1 }: PlayerStatsOverlayProps = {}) {
   const [stats, setStats] = useState<Record<string, number> | null>(null);
   const [config, setConfig] = useState<OverlayConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -116,7 +117,10 @@ export function PlayerStatsOverlay({ stats: propStats, config: propConfig, card 
   return (
     <div className="w-full h-full flex items-center justify-center pointer-events-none select-none">
       {showCard ? (
-        <div className="bg-zinc-900/90 rounded-xl px-8 py-6 shadow-lg min-h-[72px] flex items-center">
+        <div
+          className="bg-zinc-900/90 rounded-xl px-8 py-6 shadow-lg min-h-[72px] flex items-center"
+          style={{ transform: `scale(${scale})` }}
+        >
           {content}
         </div>
       ) : (
