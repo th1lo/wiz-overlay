@@ -274,7 +274,10 @@ export default function AdminPanel() {
           <div className="relative z-10">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
-              <h1 className="text-2xl font-bold text-white">Overlay Configuration</h1>
+              <h1 className="text-2xl font-bold text-white flex items-center">
+                Overlay Configuration
+                <span className="ml-3 text-xs font-normal text-zinc-400 align-middle">v0.1.0</span>
+              </h1>
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2 bg-zinc-900/70 backdrop-blur-sm rounded-lg px-4 py-2">
                   <span className="text-white">Show Preview</span>
@@ -341,7 +344,7 @@ export default function AdminPanel() {
                   </DialogContent>
                 </Dialog>
               </div>
-        </div>
+            </div>
 
             {/* Main Content */}
             <div className="flex-1">
