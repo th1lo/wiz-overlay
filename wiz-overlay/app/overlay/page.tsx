@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import FIRItemsOverlay from './fir-items/page';
-import PlayerStatsOverlay from './player-stats/page';
+import { FIRItemsOverlay } from '@/components/FIRItemsOverlay';
+import { PlayerStatsOverlay } from '@/components/PlayerStatsOverlay';
 
 interface OverlayConfig {
   stats: {

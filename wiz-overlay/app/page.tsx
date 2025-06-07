@@ -8,8 +8,9 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { statConfig, itemConfig } from '@/components/overlayConfig';
-import FIRItemsOverlay from '@/app/overlay/fir-items/page';
-import PlayerStatsOverlay from '@/app/overlay/player-stats/page';
+import { FIRItemsOverlay } from '@/components/FIRItemsOverlay';
+import { PlayerStatsOverlay } from '@/components/PlayerStatsOverlay';
+import Image from 'next/image';
 
 interface OverlayConfig {
   stats: {
@@ -375,7 +376,7 @@ export default function AdminPanel() {
                       {Object.entries(itemConfig).map(([key, item]) => (
                         <div key={key} className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
-                            <img src={item.image} alt={item.label} className="h-6 w-6" />
+                            <Image src={item.image} alt={item.label} width={24} height={24} className="h-6 w-6" />
                             <span className="text-white">{item.label}</span>
                           </div>
                           <div className="flex items-center space-x-2">

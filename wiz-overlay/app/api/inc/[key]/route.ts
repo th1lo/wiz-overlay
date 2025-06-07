@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { Redis } from '@upstash/redis';
 
 const redis = new Redis({
@@ -23,11 +23,11 @@ async function incStat(key: string) {
 }
 
 export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ key: string }> }
+  request: NextRequest,
+  context: { params: Promise<{ key: string }> }
 ) {
   try {
-    const { key } = await params;
+    const { key } = await context.params;
     if (key in defaultStats) {
       const value = await incStat(key);
       return NextResponse.json({ success: true, value });
