@@ -89,9 +89,6 @@ export function PlayerStatsOverlay({ stats: propStats, config: propConfig, card,
         displayConfig.stats[key as keyof OverlayConfig['stats']] && (
           <div key={key} className="flex items-center space-x-2 relative">
             {stat.icon}
-            <span className="absolute left-10 top-1/2 -translate-y-1/2 text-2xl font-bold text-zinc-500/30 pointer-events-none select-none whitespace-nowrap" style={{zIndex: 0}}>
-              {stat.label}
-            </span>
             <span
               className={
                 "relative text-white text-lg font-bold transition-transform duration-200 z-10 " +
