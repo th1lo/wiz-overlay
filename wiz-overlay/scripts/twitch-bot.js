@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 
 const channel = 'YOUR_CHANNEL_NAME'; // <-- set your channel name
 const apiBase = 'http://localhost:3000/api'; // <-- set your API base URL
-const allowedItems = ['ledx','gpu','bitcoin','redKeycard','blueKeycard','labsKeycard','pmcKills','totalDeaths'];
+const allowedItems = ['ledx','gpu','bitcoin','redKeycard','blueKeycard','yellowKeycard','pmcKills','totalDeaths'];
 
 const client = new tmi.Client({
   options: { debug: true },

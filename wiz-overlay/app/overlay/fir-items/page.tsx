@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { itemConfig } from '@/components/overlayConfig';
 
 interface OverlayConfig {
   items: {
@@ -9,47 +10,38 @@ interface OverlayConfig {
     bitcoin: boolean;
     redKeycard: boolean;
     blueKeycard: boolean;
-    labsKeycard: boolean;
+    yellowKeycard: boolean;
   };
 }
 
-const itemConfig = {
-  ledx: { label: 'LEDX', image: '/ledx.png' },
-  gpu: { label: 'GPU', image: '/gpu.png' },
-  bitcoin: { label: 'Bitcoin', image: '/bitcoin.png' },
-  redKeycard: { label: 'Red Keycard', image: '/red_keycard.png' },
-  blueKeycard: { label: 'Blue Keycard', image: '/blue_keycard.png' },
-  labsKeycard: { label: 'Labs Keycard', image: '/yellow_keycard.png' }
-};
+interface FIRItemsOverlayProps {
+  stats?: Record<string, number>;
+  config?: OverlayConfig;
+  card?: boolean;
+}
 
-export default function FIRItemsOverlay() {
-  const [stats, setStats] = useState<Record<string, number>>({
-    ledx: 0,
-    gpu: 0,
-    bitcoin: 0,
-    redKeycard: 0,
-    blueKeycard: 0,
-    labsKeycard: 0
-  });
-
-  const [config, setConfig] = useState<OverlayConfig>({
-    items: {
-      ledx: true,
-      gpu: true,
-      bitcoin: true,
-      redKeycard: true,
-      blueKeycard: true,
-      labsKeycard: true
-    }
-  });
+export default function FIRItemsOverlay({ stats: propStats, config: propConfig, card }: FIRItemsOverlayProps = {}) {
+  const [stats, setStats] = useState<Record<string, number> | null>(null);
+  const [config, setConfig] = useState<OverlayConfig | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [lastChangedItem, setLastChangedItem] = useState<string | null>(null);
+  const prevStats = useRef<Record<string, number> | null>(null);
 
   useEffect(() => {
+    if (propStats && propConfig) {
+      setStats(propStats);
+      setConfig(propConfig);
+      setIsLoading(false);
+      return;
+    }
+
     const fetchStats = async () => {
       try {
         const response = await fetch('/api/data');
         if (!response.ok) throw new Error('Failed to fetch stats');
         const data = await response.json();
         setStats(data);
+        setIsLoading(false);
       } catch (error) {
         console.error('Error fetching stats:', error);
       }
@@ -75,18 +67,63 @@ export default function FIRItemsOverlay() {
       clearInterval(statsInterval);
       clearInterval(configInterval);
     };
-  }, []);
+  }, [propStats, propConfig]);
 
-  return (
-    <div className="flex bg-zinc-900/90 rounded-xl px-8 py-6 space-x-8 shadow-lg">
+  // Detect stat changes and animate
+  useEffect(() => {
+    const displayStats = propStats || stats;
+    if (!displayStats) return;
+    if (prevStats.current) {
+      for (const key of Object.keys(itemConfig)) {
+        if (displayStats[key] !== prevStats.current[key]) {
+          setLastChangedItem(key);
+          setTimeout(() => {
+            setLastChangedItem(null);
+          }, 500);
+          break;
+        }
+      }
+    }
+    prevStats.current = { ...displayStats };
+  }, [propStats, stats]);
+
+  const displayStats = propStats || stats;
+  const displayConfig = propConfig || config;
+  const showCard = card ?? (displayConfig && (displayConfig as any).showCards !== false);
+
+  if (isLoading || !displayStats || !displayConfig) return null;
+
+  const content = (
+    <div className="flex space-x-8">
       {Object.entries(itemConfig).map(([key, item]) => (
-        config.items[key as keyof OverlayConfig['items']] && (
+        displayConfig.items[key as keyof OverlayConfig['items']] && (
           <div key={key} className="flex items-center space-x-2">
             <img src={item.image} alt={item.label} className="h-8 w-8" />
-            <span className="text-white text-lg font-medium">{Number(stats[key] ?? 0)}</span>
+            <span
+              className={
+                "text-white text-lg font-medium transition-transform duration-200 " +
+                (lastChangedItem === key
+                  ? 'scale-110 animate-pulse text-yellow-400 animate-slideUp'
+                  : '')
+              }
+            >
+              {Number(displayStats[key] ?? 0)}
+            </span>
           </div>
         )
       ))}
+    </div>
+  );
+
+  return (
+    <div className="fixed bottom-12 left-12 pointer-events-none select-none">
+      {showCard ? (
+        <div className="bg-zinc-900/90 rounded-xl px-8 py-6 shadow-lg">
+          {content}
+        </div>
+      ) : (
+        content
+      )}
     </div>
   );
 } 

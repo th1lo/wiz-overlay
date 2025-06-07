@@ -20,13 +20,14 @@ const defaultConfig = {
     bitcoin: true,
     redKeycard: true,
     blueKeycard: true,
-    labsKeycard: true
+    yellowKeycard: true
   }
 };
 
 export async function GET() {
   try {
     const config = await redis.get('overlay-config') || defaultConfig;
+    if (config.showCards === undefined) config.showCards = true;
     return NextResponse.json(config);
   } catch (error) {
     console.error('Error reading config:', error);

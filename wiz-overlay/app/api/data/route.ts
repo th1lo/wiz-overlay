@@ -18,7 +18,7 @@ const defaultStats = {
   bitcoin: 0,
   redKeycard: 0,
   blueKeycard: 0,
-  labsKeycard: 0,
+  yellowKeycard: 0,
   pmcKills: 0,
   totalDeaths: 0,
   totalRaids: 0,

@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Crosshair, Skull, ChartNoAxesColumn, Sword, DoorOpen } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { statConfig } from '@/components/overlayConfig';
 
 interface OverlayConfig {
   stats: {
@@ -13,40 +13,35 @@ interface OverlayConfig {
   };
 }
 
-const statConfig = {
-  pmcKills: { label: 'PMC Kills', icon: <Crosshair className="h-7 w-7 text-yellow-400" /> },
-  totalDeaths: { label: 'Deaths', icon: <Skull className="h-7 w-7 text-yellow-400" /> },
-  totalRaids: { label: 'Raids', icon: <Sword className="h-7 w-7 text-yellow-400" /> },
-  survivedRaids: { label: 'Survived', icon: <DoorOpen className="h-7 w-7 text-yellow-400" /> },
-  kdRatio: { label: 'K/D', icon: <ChartNoAxesColumn className="h-7 w-7 text-yellow-400" /> }
-};
+interface PlayerStatsOverlayProps {
+  stats?: Record<string, number>;
+  config?: OverlayConfig;
+  card?: boolean;
+}
 
-export default function PlayerStatsOverlay() {
-  const [stats, setStats] = useState<Record<string, number>>({
-    pmcKills: 0,
-    totalDeaths: 0,
-    totalRaids: 0,
-    survivedRaids: 0,
-    kdRatio: 0
-  });
-
-  const [config, setConfig] = useState<OverlayConfig>({
-    stats: {
-      pmcKills: true,
-      totalDeaths: true,
-      totalRaids: true,
-      survivedRaids: true,
-      kdRatio: true
-    }
-  });
+export default function PlayerStatsOverlay({ stats: propStats, config: propConfig, card }: PlayerStatsOverlayProps = {}) {
+  const [stats, setStats] = useState<Record<string, number> | null>(null);
+  const [config, setConfig] = useState<OverlayConfig | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [lastChangedStat, setLastChangedStat] = useState<string | null>(null);
+  const [changeDirection, setChangeDirection] = useState<'up' | 'down' | null>(null);
+  const prevStats = useRef<Record<string, number> | null>(null);
 
   useEffect(() => {
+    if (propStats && propConfig) {
+      setStats(propStats);
+      setConfig(propConfig);
+      setIsLoading(false);
+      return;
+    }
+
     const fetchStats = async () => {
       try {
         const response = await fetch('/api/data');
         if (!response.ok) throw new Error('Failed to fetch stats');
         const data = await response.json();
-        setStats(data.playerStats || {});
+        setStats(data);
+        setIsLoading(false);
       } catch (error) {
         console.error('Error fetching stats:', error);
       }
@@ -72,20 +67,64 @@ export default function PlayerStatsOverlay() {
       clearInterval(statsInterval);
       clearInterval(configInterval);
     };
-  }, []);
+  }, [propStats, propConfig]);
 
-  return (
-    <div className="flex bg-zinc-900/90 rounded-xl px-8 py-6 space-x-8 shadow-lg">
+  // Detect stat changes and animate
+  useEffect(() => {
+    const displayStats = propStats || stats;
+    if (!displayStats) return;
+    if (prevStats.current) {
+      for (const key of Object.keys(statConfig)) {
+        if (displayStats[key] !== prevStats.current[key]) {
+          setLastChangedStat(key);
+          setChangeDirection(displayStats[key] > prevStats.current[key] ? 'up' : 'down');
+          setTimeout(() => {
+            setLastChangedStat(null);
+            setChangeDirection(null);
+          }, 500);
+          break;
+        }
+      }
+    }
+    prevStats.current = { ...displayStats };
+  }, [propStats, stats]);
+
+  const displayStats = propStats || stats;
+  const displayConfig = propConfig || config;
+  const showCard = card ?? (displayConfig && (displayConfig as any).showCards !== false);
+  if (isLoading || !displayStats || !displayConfig) return null;
+
+  const content = (
+    <div className="flex space-x-8">
       {Object.entries(statConfig).map(([key, stat]) => (
-        config.stats[key as keyof OverlayConfig['stats']] && (
+        displayConfig.stats[key as keyof OverlayConfig['stats']] && (
           <div key={key} className="flex items-center space-x-2">
             {stat.icon}
-            <span className="text-white text-lg font-bold">
-              {key === 'kdRatio' ? Number(stats[key] ?? 0).toFixed(2) : stats[key]}
+            <span
+              className={
+                "text-white text-lg font-bold transition-transform duration-200 " +
+                (lastChangedStat === key
+                  ? 'scale-110 animate-pulse text-yellow-400 animate-slideUp'
+                  : '')
+              }
+            >
+              {key === 'kdRatio' ? Number(displayStats[key] ?? 0).toFixed(2) : Number(displayStats[key] ?? 0)}
             </span>
           </div>
         )
       ))}
+    </div>
+  );
+
+  return (
+    <div className="fixed bottom-12 right-12 pointer-events-none select-none">
+      {showCard ? (
+        <div className="bg-zinc-900/90 rounded-xl px-8 py-6 shadow-lg">
+          {content}
+        </div>
+      ) : (
+        content
+      )}
     </div>
   );
 } 
