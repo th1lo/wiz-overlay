@@ -237,18 +237,20 @@ export default function AdminPanel() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white relative">
-      {/* Background Video and Gradient */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <video
-          src="/demo.mp4"
-          className="w-full h-full object-cover"
-          autoPlay
-          loop
-          muted
-          playsInline
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/100 via-zinc-900/90 to-zinc-900/50" />
-      </div>
+      {/* Background Video and Gradient - only show if preview is enabled */}
+      {showPreview && (
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <video
+            src="/demo.mp4"
+            className="w-full h-full object-cover"
+            autoPlay
+            loop
+            muted
+            playsInline
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/100 via-zinc-900/90 to-zinc-900/50" />
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8 relative z-10">
