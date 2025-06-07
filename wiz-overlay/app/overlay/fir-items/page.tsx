@@ -20,7 +20,6 @@ interface FIRItemsOverlayProps {
   card?: boolean;
 }
 
-/* eslint-disable @next/next/no-img-element */
 export default function FIRItemsOverlay({ stats: propStats, config: propConfig, card }: FIRItemsOverlayProps = {}) {
   const [stats, setStats] = useState<Record<string, number> | null>(null);
   const [config, setConfig] = useState<OverlayConfig | null>(null);

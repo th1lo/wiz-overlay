@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Minus, Crosshair, Skull, ChartNoAxesColumn, Sword, DoorOpen, InfoIcon, RefreshCw } from 'lucide-react';
+import { Plus, Minus, InfoIcon, RefreshCw } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -239,7 +239,7 @@ export default function AdminPanel() {
     }
   };
 
-  const showCard = config.showCards !== false;
+  const showCard = (config as unknown as { showCards?: boolean }).showCards !== false;
 
   return (
     <div className="relative min-h-screen bg-zinc-900">

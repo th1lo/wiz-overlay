@@ -1,3 +1,2 @@
-export default {
-  yellowKeycard: 0,
-}; 
+const decConfig = { yellowKeycard: 0 };
+export default decConfig; 
