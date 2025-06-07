@@ -11,6 +11,8 @@ import { statConfig, itemConfig } from '@/components/overlayConfig';
 import { FIRItemsOverlay } from '@/components/FIRItemsOverlay';
 import { PlayerStatsOverlay } from '@/components/PlayerStatsOverlay';
 import Image from 'next/image';
+import { OverlayPreview } from '@/components/OverlayPreview';
+import { Slider } from '@/components/ui/slider';
 
 interface OverlayConfig {
   stats: {
@@ -294,37 +296,45 @@ export default function AdminPanel() {
                 <span className="ml-3 text-xs font-normal text-zinc-400 align-middle">v0.1.0</span>
               </h1>
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2 bg-zinc-900/70 backdrop-blur-sm rounded-lg px-4 py-2">
-                  <span className="text-white">Show Preview</span>
-                  <Switch
-                    checked={showPreview}
-                    onCheckedChange={setShowPreview}
-                  />
-                </div>
-                <div className="flex items-center space-x-2 bg-zinc-900/70 backdrop-blur-sm rounded-lg px-4 py-2">
-                  <span className="text-white">Show Overlay Box</span>
-                  <Switch
-                    checked={showCard}
-                    onCheckedChange={(checked) => {
-                      const newConfig = { ...config, showCards: checked };
-                      setConfig(newConfig);
-                      saveConfig(newConfig);
-                    }}
-                  />
-                </div>
-                <div className="flex items-center space-x-2 bg-zinc-900/70 backdrop-blur-sm rounded-lg px-4 py-2">
-                  <span className="text-white">Scale</span>
-                  <input
-                    type="range"
-                    min={0.5}
-                    max={2}
-                    step={0.01}
-                    value={scale}
-                    onChange={e => setScale(Number(e.target.value))}
-                    className="w-24"
-                  />
-                  <span className="text-zinc-300 text-xs w-10 text-right">{Math.round(scale * 100)}%</span>
-                </div>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="bg-zinc-800/50 hover:bg-zinc-700/50 border-zinc-700 hover:border-zinc-600 text-zinc-200 hover:text-white transition-colors">
+                      <span>Settings</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-zinc-900 border-zinc-700">
+                    <DialogHeader>
+                      <DialogTitle className="text-white">Overlay Settings</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-6 mt-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-white">Show Overlay Box</span>
+                        <Switch
+                          checked={showCard}
+                          onCheckedChange={(checked) => {
+                            const newConfig = { ...config, showCards: checked };
+                            setConfig(newConfig);
+                            saveConfig(newConfig);
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-white">Scale</span>
+                          <span className="text-zinc-300 text-xs w-10 text-right">{Math.round(scale * 100)}%</span>
+                        </div>
+                        <Slider
+                          min={0.5}
+                          max={2}
+                          step={0.01}
+                          value={[scale]}
+                          onValueChange={([val]: number[]) => setScale(val)}
+                          className="w-64"
+                        />
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button 
@@ -482,10 +492,7 @@ export default function AdminPanel() {
 
       {/* Preview */}
       {showPreview && (
-        <>
-          <FIRItemsOverlay stats={stats} config={config} card={showCard} scale={scale} />
-          <PlayerStatsOverlay stats={stats} config={config} card={showCard} scale={scale} />
-        </>
+        <OverlayPreview stats={stats} config={config} scale={scale} showCard={showCard} />
       )}
     </div>
   );
