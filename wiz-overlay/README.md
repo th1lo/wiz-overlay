@@ -1,43 +1,24 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WiZ Overlay
 
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+A modern, customizable overlay system for Escape from Tarkov, built with Next.js, shadcn/ui, and Upstash Redis. Designed for streamers and content creators who want real-time, beautiful overlays in OBS.
 
 ---
 
-### 🎥 How to Add the Overlay to OBS
+## Getting Started
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+2. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+   The app will be available at [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 🎥 How to Add the Overlay to OBS
 
 1. **Open OBS Studio.**
 2. In the **Sources** panel, click the **+** button and select **Browser**.
@@ -49,9 +30,51 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
      `https://wiz-overlay.vercel.app/overlay/player-stats`
    - **Full Overlay:**  
      `https://wiz-overlay.vercel.app/overlay`
-5. Set the **Width** and **Height** to match your stream layout (e.g., 1920x1080 for full HD).
+5. Set the **Width** and **Height** to match your stream layout (e.g., 1920x1080 for full HD, or use the recommended size in the admin panel).
 6. Click **OK** to add the overlay.
 7. Position and resize the overlay as needed in your scene.
 
 > **Tip:**
-> If you are developing locally, you can use `http://localhost:3000/overlay/fir-items` instead, but this will only work on your own computer while the dev server is running.
+> For local development, use `http://localhost:3000/overlay/fir-items` (works only on your own computer while the dev server is running).
+
+---
+
+## 🛠️ Implementation History (Changelog)
+
+- **2024-06-07**: Major UI/UX refactor, shadcn/ui components, dark mode, settings modal, preview improvements, background video restored, overlays positioned in corners.
+- **2024-06-06**: Overlay scaling, dynamic size recommendations, admin panel preview, improved OBS instructions.
+- **2024-06-05**: Initial Next.js app, FIR Items and Player Stats overlays, Upstash Redis integration, basic admin panel.
+
+---
+
+## 🚀 Roadmap / Planned Features
+
+- [ ] **WebSocket Live Updates:**
+      - Push real-time stat/item changes to overlays without polling.
+- [ ] **Twitch Bot Integration:**
+      - Allow chat commands to update overlays (e.g., !addkill, !firitem).
+- [ ] **More Overlay Types:**
+      - Boss spawns, timers, custom widgets.
+- [ ] **User Authentication:**
+      - Secure admin panel, multi-user support.
+- [ ] **Overlay Themes:**
+      - Light/dark, color customization, font options.
+- [ ] **Mobile Admin Panel:**
+      - Responsive controls for on-the-go management.
+- [ ] **Better Error Handling & Logging**
+- [ ] **Automated Testing & CI/CD**
+
+---
+
+## 🤝 Contributing / Dev Notes
+
+- All overlay logic is in `/components/FIRItemsOverlay.tsx` and `/components/PlayerStatsOverlay.tsx`.
+- Admin panel is in `/app/page.tsx`.
+- Overlay routes are in `/app/overlay/`.
+- Uses Upstash Redis for persistent config/stats.
+- Styling: Tailwind CSS + shadcn/ui.
+- For local dev, ensure you have a `.env` with Upstash credentials if needed.
+
+---
+
+**Made with ❤️ by th1lo and contributors.**
