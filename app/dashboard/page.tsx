@@ -1,6 +1,8 @@
 import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import { OverlayConfig } from "@/components/OverlayConfig";
+import { LogOut } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 export default async function Dashboard() {
   const session = await getServerSession();
@@ -19,6 +21,16 @@ export default async function Dashboard() {
               Logged in as {session.user?.name}
             </span>
           </div>
+          <form action="/api/auth/logout" method="POST">
+            <Button
+              type="submit"
+              variant="outline"
+              className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </form>
         </div>
         <OverlayConfig userId={session.user?.id} />
       </div>
