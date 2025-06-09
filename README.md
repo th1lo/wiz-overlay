@@ -1,6 +1,262 @@
-# OBS Overlays
+# OBS-Overlay
 
-A modern, customizable overlay system for Escape from Tarkov, built with Next.js, shadcn/ui, Upstash Redis, and Pusher. Designed for streamers and content creators who want real-time, beautiful overlays in OBS.
+A modern, customizable overlay system for streamers, built with Next.js, shadcn/ui, and Pusher. Designed for streamers who want real-time, beautiful overlays in OBS with minimal setup and maximum performance.
+
+## 🎯 Vision
+
+To become the go-to platform for streamers seeking high-performance, customizable overlays that enhance their stream without compromising quality or requiring technical expertise.
+
+## 🌟 Key Features
+
+### Current
+- **Tarkov Player Stats Overlay**
+  - Real-time player statistics
+  - Customizable display options
+  - Performance-optimized for OBS
+  - Minimal resource usage
+
+- **Tarkov FIR Items Overlay**
+  - Track Found in Raid items
+  - Real-time updates
+  - Customizable layout
+  - Chat bot integration for moderators
+
+### Planned
+- **Chat Bot Integration**
+  - Moderator commands for item tracking
+  - Viewer stats lookup
+  - Custom command creation
+  - Moderation tools
+
+- **Dashboard & Configuration**
+  - Modern sidebar navigation
+  - Block-based control interface
+  - Shared configuration with moderators
+  - Easy setup wizards
+
+- **Future Overlays**
+  - Spotify integration
+  - General streaming tools
+  - Custom overlay creation
+  - Ad integration platform
+
+## 🚀 Roadmap
+
+### Phase 1: Foundation (Current)
+- [x] Basic overlay system
+- [x] Real-time updates with Pusher
+- [ ] Refactored codebase
+- [ ] New dashboard UI
+- [ ] Improved configuration system
+- [ ] Chat bot integration
+
+### Phase 2: Growth (6-12 months)
+- [ ] Spotify overlay
+- [ ] Advanced customization options
+- [ ] Moderation tools
+- [ ] User feedback system
+- [ ] Performance optimizations
+- [ ] Documentation and guides
+
+### Phase 3: Platform (1-3 years)
+- [ ] Ad integration platform
+- [ ] Streamer revenue sharing
+- [ ] Advanced analytics
+- [ ] Community features
+- [ ] API for third-party integrations
+- [ ] Premium features
+
+## 🎯 Milestones
+
+1. **100 Users**
+   - Solid user base
+   - Initial feedback
+   - Core features validated
+
+2. **1,000 Users**
+   - Growing community
+   - Feature requests
+   - Platform stability
+
+3. **10,000 Users**
+   - Major platform
+   - Revenue generation
+   - Industry recognition
+
+## 🛠 Technical Stack
+
+- **Frontend**: Next.js 14, React 18, shadcn/ui
+- **Real-time**: Pusher
+- **Styling**: Tailwind CSS
+- **Authentication**: NextAuth.js
+- **Deployment**: Vercel
+
+## 🚀 Deployment & Release Pipeline
+
+### Environments
+- **Production**: Live environment at [production-url]
+- **Preview**: Staging environment at [preview-url]
+- **Development**: Local development environment
+
+### Release Process
+1. **Development**
+   - Feature branches from `main`
+   - Regular commits with clear messages
+   - Pull requests for review
+   - Automated testing
+
+2. **Preview**
+   - Automatic deployment on PR merge
+   - Manual testing environment
+   - Performance testing
+   - User acceptance testing
+
+3. **Production**
+   - Scheduled releases
+   - Version tagging
+   - Changelog updates
+   - Performance monitoring
+
+### Release Schedule
+- **Weekly Releases**
+  - Small, incremental updates
+  - Bug fixes
+  - Performance improvements
+  - Minor features
+
+- **Monthly Releases**
+  - Major features
+  - Architecture changes
+  - Breaking changes
+  - Platform updates
+
+### Quality Gates
+1. **Code Quality**
+   - TypeScript strict mode
+   - ESLint passing
+   - No critical issues
+   - Test coverage >80%
+
+2. **Performance**
+   - OBS resource usage <5%
+   - Update latency <100ms
+   - Load time <1s
+   - No memory leaks
+
+3. **User Experience**
+   - No critical bugs
+   - All features working
+   - Smooth animations
+   - Responsive design
+
+### Monitoring
+- **Performance Metrics**
+  - OBS resource usage
+  - Update latency
+  - Error rates
+  - User metrics
+
+- **Usage Analytics**
+  - Active users
+  - Feature usage
+  - Error tracking
+  - User feedback
+
+## 🎨 Design Principles
+
+1. **Performance First**
+   - Minimal resource usage
+   - Optimized for OBS
+   - Fast loading times
+   - Low latency updates
+
+2. **User Experience**
+   - Simple setup process
+   - Intuitive configuration
+   - Clear documentation
+   - Helpful error messages
+
+3. **Customization**
+   - Minimal default design
+   - Easy branding integration
+   - Flexible layouts
+   - Theme support
+
+4. **Reliability**
+   - Stable real-time updates
+   - Error handling
+   - Fallback mechanisms
+   - Regular backups
+
+## 📊 Monitoring & Analytics
+
+### Usage Tracking
+- Active users count
+- Overlay usage statistics
+- Feature adoption rates
+- User retention metrics
+- Popular configuration patterns
+
+### Performance Monitoring
+- Overlay load times
+- Real-time update latency
+- Resource usage in OBS
+- Error rates and types
+- Connection stability
+
+### Implementation Priority
+1. Basic usage tracking
+   - User registration
+   - Overlay activation
+   - Feature usage
+2. Performance metrics
+   - Load times
+   - Update latency
+   - Error tracking
+3. Advanced analytics
+   - User behavior
+   - Performance trends
+   - Usage patterns
+
+## 🤝 Contributing
+
+We welcome contributions! Please read our contributing guidelines and code of conduct before submitting pull requests.
+
+## 📝 Development Process
+
+This project is developed using AI assistance (Claude) to maintain high code quality and consistent development practices. The development process follows these principles:
+
+1. **Code Quality**
+   - TypeScript for type safety
+   - ESLint for code consistency
+   - Prettier for formatting
+   - Regular refactoring
+
+2. **Documentation**
+   - Clear README
+   - Code comments
+   - API documentation
+   - Setup guides
+
+3. **Testing**
+   - Unit tests
+   - Integration tests
+   - Performance testing
+   - User testing
+
+4. **Deployment**
+   - Automated builds
+   - Staging environment
+   - Production monitoring
+   - Regular updates
+
+## 📫 Contact
+
+For support, feedback, or inquiries, please use our contact form or reach out through our social media channels.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
 
@@ -88,25 +344,6 @@ This project uses [Pusher Channels](https://pusher.com/channels) for real-time o
 - **2024-06-06**: Overlay scaling, dynamic size recommendations, admin panel preview, improved OBS instructions.
 - **2024-06-05**: Initial Next.js app, FIR Items and Player Stats overlays, Upstash Redis integration, basic admin panel.
 - **2024-06-08**: Switched to Pusher for real-time updates, improved codebase structure, added Project Rule #1.
-
----
-
-## 🚀 Roadmap / Planned Features
-
-- [x] **WebSocket Live Updates (Pusher):**
-      - Push real-time stat/item changes to overlays without polling.
-- [ ] **Twitch Bot Integration:**
-      - Allow chat commands to update overlays (e.g., !addkill, !firitem).
-- [ ] **More Overlay Types:**
-      - Boss spawns, timers, custom widgets.
-- [ ] **User Authentication:**
-      - Secure admin panel, multi-user support.
-- [ ] **Overlay Themes:**
-      - Light/dark, color customization, font options.
-- [ ] **Mobile Admin Panel:**
-      - Responsive controls for on-the-go management.
-- [ ] **Better Error Handling & Logging**
-- [ ] **Automated Testing & CI/CD**
 
 ---
 
