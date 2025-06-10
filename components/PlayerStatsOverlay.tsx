@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { statConfig } from '@/components/overlayConfig';
 import type { OverlayConfig } from './types';
 import { useSocket } from '@/lib/hooks/useSocket';
+import { Skull, Cross, Map, CheckCircle, Target } from 'lucide-react';
 
 interface PlayerStatsOverlayProps {
   stats?: Record<string, number>;
@@ -11,6 +12,14 @@ interface PlayerStatsOverlayProps {
   card?: boolean;
   scale?: number;
 }
+
+const iconMap = {
+  Skull: Skull,
+  Cross: Cross,
+  Map: Map,
+  CheckCircle: CheckCircle,
+  Target: Target
+};
 
 export function PlayerStatsOverlay({ stats: propStats, config: propConfig, card, scale = 1 }: PlayerStatsOverlayProps = {}) {
   const [stats, setStats] = useState<Record<string, number> | null>(null);
@@ -62,63 +71,64 @@ export function PlayerStatsOverlay({ stats: propStats, config: propConfig, card,
     });
   }, [propStats, propConfig, onUpdate]);
 
-  // Detect stat changes and animate
   useEffect(() => {
-    const displayStats = propStats || stats;
-    if (!displayStats) return;
-    if (prevStats.current) {
-      for (const key of Object.keys(statConfig)) {
-        if (displayStats[key] !== prevStats.current[key]) {
-          setLastChangedStat(key);
-          setTimeout(() => {
-            setLastChangedStat(null);
-          }, 500);
-          break;
-        }
-      }
+    if (!stats || !prevStats.current) {
+      prevStats.current = stats;
+      return;
     }
-    prevStats.current = { ...displayStats };
-  }, [propStats, stats]);
 
-  const displayStats = propStats || stats;
-  const displayConfig = propConfig || config;
-  const showCard = card ?? (displayConfig && (displayConfig as unknown as { showCards?: boolean }).showCards !== false);
-  if (isLoading || !displayStats || !displayConfig) return null;
+    // Find changed stats
+    const changedStat = Object.entries(stats).find(
+      ([key, value]) => prevStats.current?.[key] !== value
+    );
 
-  const content = (
-    <div className="flex space-x-8">
-      {Object.entries(statConfig).map(([key, stat]) => (
-        displayConfig.stats[key as keyof OverlayConfig['stats']] && (
-          <div key={key} className="flex items-center space-x-2 relative">
-            {stat.icon}
-            <span
-              className={
-                "relative text-white text-lg font-bold transition-transform duration-200 z-10 " +
-                (lastChangedStat === key
-                  ? 'scale-110 animate-pulse text-yellow-400 animate-slideUp'
-                  : '')
-              }
-            >
-              {key === 'kdRatio' ? Number(displayStats[key] ?? 0).toFixed(2) : Number(displayStats[key] ?? 0)}
-            </span>
-          </div>
-        )
-      ))}
-    </div>
-  );
+    if (changedStat) {
+      setLastChangedStat(changedStat[0]);
+      const timer = setTimeout(() => setLastChangedStat(null), 2000);
+      return () => clearTimeout(timer);
+    }
+
+    prevStats.current = stats;
+  }, [stats]);
+
+  if (isLoading || !stats || !config) return null;
+
+  const enabledStats = Object.entries(config.stats)
+    .filter(([_, enabled]) => enabled)
+    .map(([key]) => key);
+
+  if (enabledStats.length === 0) return null;
 
   return (
-    <div className="w-full h-full flex items-center justify-center pointer-events-none select-none">
-      {showCard ? (
-        <div
-          className="bg-zinc-900/90 rounded-xl px-8 py-6 shadow-lg min-h-[72px] flex items-center"
-          style={{ transform: `scale(${scale})` }}
-        >
-          {content}
-        </div>
-      ) : (
-        content
-      )}
+    <div
+      className={`fixed top-4 right-4 flex flex-col gap-2 ${card ? 'bg-zinc-800/90 backdrop-blur-sm p-4 rounded-lg border border-zinc-700' : ''}`}
+      style={{ transform: `scale(${scale})`, transformOrigin: 'top right' }}
+    >
+      {enabledStats.map((key) => {
+        const stat = statConfig[key];
+        if (!stat) return null;
+
+        const value = stats[key] || 0;
+        const isHighlighted = lastChangedStat === key;
+        const Icon = iconMap[stat.icon as keyof typeof iconMap];
+
+        return (
+          <div
+            key={key}
+            className={`flex items-center gap-2 transition-all duration-300 ${
+              isHighlighted ? 'scale-110' : ''
+            }`}
+          >
+            <div className="w-8 h-8 flex items-center justify-center bg-zinc-700 rounded">
+              <Icon className="h-5 w-5 text-yellow-400" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-white">{stat.label}</span>
+              <span className="text-xs text-zinc-400">{value}</span>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 } 

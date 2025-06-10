@@ -7,7 +7,7 @@ import { Plus, Minus, InfoIcon, RefreshCw } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { statConfig, itemConfig } from '@/components/overlayConfig';
+import { statConfig, defaultItemConfig } from '@/components/overlayConfig';
 import Image from 'next/image';
 import { Slider } from '@/components/ui/slider';
 import type { OverlayConfig } from '@/components/types';
@@ -451,7 +451,7 @@ export default function AdminPanel() {
               <CardContent className="p-6">
                 <h2 className="text-xl font-semibold mb-4 text-white">FIR Items</h2>
                 <div className="space-y-4">
-                  {Object.entries(itemConfig).map(([key, item]) => (
+                  {Object.entries(defaultItemConfig).map(([key, item]) => (
                     <div key={key} className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <Image src={item.image} alt={item.label} width={24} height={24} className="h-6 w-6" />

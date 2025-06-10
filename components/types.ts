@@ -1,3 +1,5 @@
+import { LucideIcon } from 'lucide-react';
+
 export interface OverlayConfig {
   stats: {
     pmcKills: boolean;
@@ -15,4 +17,11 @@ export interface OverlayConfig {
     yellowKeycard: boolean;
   };
   showCards?: boolean;
+}
+
+export interface ItemConfig {
+  label: string;
+  icon: LucideIcon;
+  price?: number;
+  wikiLink?: string;
 } 

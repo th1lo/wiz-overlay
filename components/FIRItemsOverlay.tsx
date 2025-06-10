@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { itemConfig } from '@/components/overlayConfig';
-import Image from 'next/image';
+import { defaultItemConfig, fetchItemConfig } from '@/components/overlayConfig';
 import type { OverlayConfig } from './types';
 import { useSocket } from '@/lib/hooks/useSocket';
 
@@ -17,12 +16,16 @@ export function FIRItemsOverlay(props?: FIRItemsOverlayProps) {
   const { stats: propStats, config: propConfig, card, scale = 1 } = props || {};
   const [stats, setStats] = useState<Record<string, number> | null>(null);
   const [config, setConfig] = useState<OverlayConfig | null>(null);
+  const [itemConfig, setItemConfig] = useState(defaultItemConfig);
   const [isLoading, setIsLoading] = useState(true);
   const [lastChangedItem, setLastChangedItem] = useState<string | null>(null);
   const prevStats = useRef<Record<string, number> | null>(null);
   const { onUpdate } = useSocket();
 
   useEffect(() => {
+    // Fetch item config
+    fetchItemConfig().then(setItemConfig);
+
     if (propStats && propConfig) {
       setStats(propStats);
       setConfig(propConfig);
@@ -64,64 +67,63 @@ export function FIRItemsOverlay(props?: FIRItemsOverlayProps) {
     });
   }, [propStats, propConfig, onUpdate]);
 
-  // Detect stat changes and animate
   useEffect(() => {
-    const displayStats = propStats || stats;
-    if (!displayStats) return;
-    if (prevStats.current) {
-      for (const key of Object.keys(itemConfig)) {
-        if (displayStats[key] !== prevStats.current[key]) {
-          setLastChangedItem(key);
-          setTimeout(() => {
-            setLastChangedItem(null);
-          }, 500);
-          break;
-        }
-      }
+    if (!stats || !prevStats.current) {
+      prevStats.current = stats;
+      return;
     }
-    prevStats.current = { ...displayStats };
-  }, [propStats, stats]);
 
-  const displayStats = propStats || stats;
-  const displayConfig = propConfig || config;
-  const showCard = card ?? (displayConfig && (displayConfig as unknown as { showCards?: boolean }).showCards !== false);
+    // Find changed items
+    const changedItem = Object.entries(stats).find(
+      ([key, value]) => prevStats.current?.[key] !== value
+    );
 
-  if (isLoading || !displayStats || !displayConfig) return null;
+    if (changedItem) {
+      setLastChangedItem(changedItem[0]);
+      const timer = setTimeout(() => setLastChangedItem(null), 2000);
+      return () => clearTimeout(timer);
+    }
 
-  const content = (
-    <div className="flex space-x-8">
-      {Object.entries(itemConfig).map(([key, item]) => (
-        displayConfig.items[key as keyof OverlayConfig['items']] && (
-          <div key={key} className="flex items-center space-x-2">
-            <Image src={item.image} alt={item.label} width={32} height={32} className="h-8 w-8" />
-            <span
-              className={
-                "text-white text-lg font-medium transition-transform duration-200 " +
-                (lastChangedItem === key
-                  ? 'scale-110 animate-pulse text-yellow-400 animate-slideUp'
-                  : '')
-              }
-            >
-              {Number(displayStats[key] ?? 0)}
-            </span>
-          </div>
-        )
-      ))}
-    </div>
-  );
+    prevStats.current = stats;
+  }, [stats]);
+
+  if (isLoading || !stats || !config) return null;
+
+  const enabledItems = Object.entries(config.items)
+    .filter(([_, enabled]) => enabled)
+    .map(([key]) => key);
+
+  if (enabledItems.length === 0) return null;
 
   return (
-    <div className="w-full h-full flex items-center justify-center pointer-events-none select-none">
-      {showCard ? (
-        <div
-          className="bg-zinc-900/90 rounded-xl px-8 py-6 shadow-lg min-h-[72px] flex items-center"
-          style={{ transform: `scale(${scale})` }}
-        >
-          {content}
-        </div>
-      ) : (
-        content
-      )}
+    <div
+      className={`fixed bottom-4 right-4 flex flex-col gap-2 ${card ? 'bg-zinc-800/90 backdrop-blur-sm p-4 rounded-lg border border-zinc-700' : ''}`}
+      style={{ transform: `scale(${scale})`, transformOrigin: 'bottom right' }}
+    >
+      {enabledItems.map((key) => {
+        const item = itemConfig[key];
+        if (!item) return null;
+
+        const count = stats[key] || 0;
+        const isHighlighted = lastChangedItem === key;
+
+        return (
+          <div
+            key={key}
+            className={`flex items-center gap-2 transition-all duration-300 ${
+              isHighlighted ? 'scale-110' : ''
+            }`}
+          >
+            <div className="w-8 h-8 flex items-center justify-center bg-zinc-700 rounded">
+              {item.icon}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-white">{item.label}</span>
+              <span className="text-xs text-zinc-400">{count}</span>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 } 
